@@ -1,14 +1,17 @@
 import { useState } from "react";
 import "./App.css";
 import ProductoDetalle from "./ProductoDetalle";
+import Checkout from "./Checkout";
 
 const PRECIO = 120000;
+
 const productos = [
   {
     id: 1,
     nombre: "Balenciaga",
     precio: PRECIO,
-    descripcion: "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
+    descripcion:
+      "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
     imagenes: [
       "/anteojos/1.jpg",
       "/anteojos/1-2.jpg",
@@ -21,7 +24,8 @@ const productos = [
     id: 2,
     nombre: "Burberry",
     precio: PRECIO,
-    descripcion: "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
+    descripcion:
+      "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
     imagenes: [
       "/anteojos/2.jpg",
       "/anteojos/2-2.jpg",
@@ -33,7 +37,8 @@ const productos = [
     id: 3,
     nombre: "Chanel",
     precio: PRECIO,
-    descripcion: "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
+    descripcion:
+      "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
     imagenes: [
       "/anteojos/3.jpg",
       "/anteojos/3-2.jpg",
@@ -45,7 +50,8 @@ const productos = [
     id: 4,
     nombre: "Christian Dior",
     precio: PRECIO,
-    descripcion: "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
+    descripcion:
+      "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
     imagenes: [
       "/anteojos/4.jpg",
       "/anteojos/4-2.jpg",
@@ -57,7 +63,8 @@ const productos = [
     id: 5,
     nombre: "Versace",
     precio: PRECIO,
-    descripcion: "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
+    descripcion:
+      "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
     imagenes: [
       "/anteojos/5.jpg",
       "/anteojos/5-2.jpg",
@@ -70,7 +77,8 @@ const productos = [
     id: 6,
     nombre: "Gucci",
     precio: PRECIO,
-    descripcion: "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
+    descripcion:
+      "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
     imagenes: [
       "/anteojos/6.jpg",
       "/anteojos/6-2.jpg",
@@ -82,7 +90,8 @@ const productos = [
     id: 7,
     nombre: "Lacoste",
     precio: PRECIO,
-    descripcion: "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
+    descripcion:
+      "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
     imagenes: [
       "/anteojos/7.jpg",
       "/anteojos/7-2.jpg",
@@ -95,7 +104,8 @@ const productos = [
     id: 8,
     nombre: "Louis Vuitton",
     precio: PRECIO,
-    descripcion: "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
+    descripcion:
+      "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
     imagenes: [
       "/anteojos/8.jpg",
       "/anteojos/8-2.jpg",
@@ -108,7 +118,8 @@ const productos = [
     id: 9,
     nombre: "MIU MIU",
     precio: PRECIO,
-    descripcion: "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
+    descripcion:
+      "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
     imagenes: [
       "/anteojos/9.jpg",
       "/anteojos/9-2.jpg",
@@ -120,7 +131,8 @@ const productos = [
     id: 10,
     nombre: "Anteojo Modern",
     precio: PRECIO,
-    descripcion: "Anteojo de diseño moderno y versátil, perfecto para completar diferentes estilos.",
+    descripcion:
+      "Anteojo de diseño moderno y versátil, perfecto para completar diferentes estilos.",
     imagenes: [
       "/anteojos/10.jpg",
       "/anteojos/10-2.jpg",
@@ -129,8 +141,11 @@ const productos = [
   },
 ];
 
+/*
+  Mercado Pago según CANTIDAD TOTAL
+  de unidades en el carrito.
+*/
 
-// Links de Mercado Pago
 const linksMercadoPago = {
   1: "https://mpago.la/2xrixb4",
   2: "https://mpago.la/2ud4sWC",
@@ -147,18 +162,23 @@ const linksMercadoPago = {
 function App() {
   const [carrito, setCarrito] = useState([]);
 
-  // Producto que estamos viendo
   const [productoSeleccionado, setProductoSeleccionado] =
     useState(null);
 
-  // Agregar producto al carrito
+  const [mostrarCheckout, setMostrarCheckout] =
+    useState(false);
+
+  // ==========================================
+  // AGREGAR AL CARRITO
+  // ==========================================
+
   function agregarAlCarrito(producto) {
     setCarrito((carritoActual) => {
-      const existe = carritoActual.find(
+      const productoExistente = carritoActual.find(
         (item) => item.id === producto.id
       );
 
-      if (existe) {
+      if (productoExistente) {
         return carritoActual.map((item) =>
           item.id === producto.id
             ? {
@@ -179,7 +199,10 @@ function App() {
     });
   }
 
-  // Restar una unidad
+  // ==========================================
+  // QUITAR UNA UNIDAD
+  // ==========================================
+
   function quitarDelCarrito(id) {
     setCarrito((carritoActual) =>
       carritoActual
@@ -195,7 +218,10 @@ function App() {
     );
   }
 
-  // Eliminar producto completo
+  // ==========================================
+  // ELIMINAR PRODUCTO
+  // ==========================================
+
   function eliminarDelCarrito(id) {
     setCarrito((carritoActual) =>
       carritoActual.filter(
@@ -204,38 +230,91 @@ function App() {
     );
   }
 
-  // Cantidad total
+  // ==========================================
+  // CANTIDAD TOTAL
+  // ==========================================
+
   const cantidadTotal = carrito.reduce(
-    (total, item) => total + item.cantidad,
+    (cantidad, producto) =>
+      cantidad + producto.cantidad,
     0
   );
 
-  // Precio total
-  const total = cantidadTotal * PRECIO;
+  // ==========================================
+  // PRECIO TOTAL
+  // ==========================================
 
-  // Pagar
+  const total = carrito.reduce(
+    (totalCarrito, producto) =>
+      totalCarrito +
+      producto.precio * producto.cantidad,
+    0
+  );
+
+  // ==========================================
+  // FINALIZAR COMPRA
+  // ==========================================
+
   function pagar() {
-    if (cantidadTotal === 0) {
+    if (carrito.length === 0) {
       alert("El carrito está vacío.");
       return;
     }
 
-    const link = linksMercadoPago[cantidadTotal];
+    const linkPago =
+      linksMercadoPago[cantidadTotal];
 
-    if (!link) {
+    if (!linkPago) {
       alert(
         `Todavía no configuramos el Link de Mercado Pago para ${cantidadTotal} anteojo(s).`
       );
+
       return;
     }
 
-    window.location.href = link;
+    setMostrarCheckout(true);
   }
+
+  // ==========================================
+  // CHECKOUT
+  // ==========================================
+
+  if (mostrarCheckout) {
+    return (
+      <Checkout
+        carrito={carrito}
+        total={total}
+        cantidadTotal={cantidadTotal}
+        linkMercadoPago={
+          linksMercadoPago[cantidadTotal]
+        }
+        onVolver={() =>
+          setMostrarCheckout(false)
+        }
+      />
+    );
+  }
+
+  // ==========================================
+  // AGREGAR DESDE EL DETALLE
+  // ==========================================
+
+  function agregarDesdeDetalle(producto) {
+    agregarAlCarrito(producto);
+
+    // Volver al listado.
+    setProductoSeleccionado(null);
+  }
+
+  // ==========================================
+  // VISTA PRINCIPAL
+  // ==========================================
 
   return (
     <div className="app">
 
       {/* HEADER */}
+
       <header className="header">
 
         <div className="logo">
@@ -248,7 +327,10 @@ function App() {
 
       </header>
 
-      {/* SI HAY UN PRODUCTO SELECCIONADO */}
+      {/* =====================================
+          DETALLE DEL PRODUCTO
+      ====================================== */}
+
       {productoSeleccionado ? (
 
         <ProductoDetalle
@@ -258,15 +340,15 @@ function App() {
             setProductoSeleccionado(null)
           }
 
-          onAgregar={agregarAlCarrito}
+          onAgregar={agregarDesdeDetalle}
         />
 
       ) : (
 
-        /* SI NO HAY PRODUCTO SELECCIONADO */
         <>
 
           {/* HERO */}
+
           <section className="hero">
 
             <h1>
@@ -288,6 +370,7 @@ function App() {
           </section>
 
           {/* PRODUCTOS */}
+
           <main id="productos">
 
             <h2>
@@ -301,16 +384,14 @@ function App() {
                 <div
                   className="producto"
                   key={producto.id}
-
-                  onClick={() =>
-                    setProductoSeleccionado(producto)
-                  }
                 >
 
+                  {/* IMAGEN */}
+
                   <img
-  src={producto.imagenes[0]}
-  alt={producto.nombre}
-/>
+                    src={producto.imagenes[0]}
+                    alt={producto.nombre}
+                  />
 
                   <div className="productoInfo">
 
@@ -320,24 +401,37 @@ function App() {
 
                     <p className="precio">
                       $
-                      {PRECIO.toLocaleString("es-AR")}
+                      {producto.precio.toLocaleString(
+                        "es-AR"
+                      )}
                     </p>
 
-                   <button
-  onClick={() =>
-    setProductoSeleccionado(producto)
-  }
->
-  Ver detalle
-</button>
+                    {/* VER DETALLE */}
 
-<button
-  onClick={() =>
-    agregarAlCarrito(producto)
-  }
->
-  Agregar al carrito
-</button>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setProductoSeleccionado(
+                          producto
+                        )
+                      }
+                    >
+                      Ver detalle
+                    </button>
+
+                    {/* AGREGAR DIRECTAMENTE */}
+
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        agregarAlCarrito(producto);
+                      }}
+                    >
+                      Agregar al carrito
+                    </button>
 
                   </div>
 
@@ -350,10 +444,12 @@ function App() {
           </main>
 
         </>
-
       )}
 
-      {/* CARRITO */}
+      {/* =====================================
+          CARRITO
+      ====================================== */}
+
       <section className="carritoSection">
 
         <h2>
@@ -388,6 +484,7 @@ function App() {
                     <div className="cantidad">
 
                       <button
+                        type="button"
                         onClick={() =>
                           quitarDelCarrito(
                             producto.id
@@ -402,8 +499,11 @@ function App() {
                       </span>
 
                       <button
+                        type="button"
                         onClick={() =>
-                          agregarAlCarrito(producto)
+                          agregarAlCarrito(
+                            producto
+                          )
                         }
                       >
                         +
@@ -416,12 +516,15 @@ function App() {
                   <strong>
                     $
                     {(
-                      PRECIO *
+                      producto.precio *
                       producto.cantidad
-                    ).toLocaleString("es-AR")}
+                    ).toLocaleString(
+                      "es-AR"
+                    )}
                   </strong>
 
                   <button
+                    type="button"
                     className="eliminar"
                     onClick={() =>
                       eliminarDelCarrito(
@@ -438,6 +541,8 @@ function App() {
 
             </div>
 
+            {/* TOTAL */}
+
             <div className="total">
 
               <span>
@@ -446,16 +551,21 @@ function App() {
 
               <strong>
                 $
-                {total.toLocaleString("es-AR")}
+                {total.toLocaleString(
+                  "es-AR"
+                )}
               </strong>
 
             </div>
 
+            {/* FINALIZAR */}
+
             <button
+              type="button"
               className="pagar"
               onClick={pagar}
             >
-              Pagar con Mercado Pago
+              Finalizar compra
             </button>
 
           </>
@@ -465,48 +575,49 @@ function App() {
       </section>
 
       {/* FOOTER */}
+
       <footer>
 
-  <p>
-    © 2026 LENTES
-  </p>
+        <p>
+          © 2026 LENTES
+        </p>
 
-  <p>
-    Pagos seguros con Mercado Pago
-  </p>
+        <p>
+          Pagos seguros con Mercado Pago
+        </p>
 
-  <div className="redesSociales">
+        <div className="redesSociales">
 
-    <a
-      href="https://www.facebook.com/"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="redSocial facebook"
-    >
-      Facebook
-    </a>
+          <a
+            href="https://www.facebook.com/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="redSocial facebook"
+          >
+            Facebook
+          </a>
 
-    <a
-      href="https://wa.me/5491100000000"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="redSocial whatsapp"
-    >
-      WhatsApp
-    </a>
-    <a
-      href="https://www.instagram.com"
-      target="_blank"
-      rel="noopener noreferrer"
-      className="redSocial instagram"
-    >
-      instagram
-    </a>
+          <a
+            href="https://wa.me/5491100000000"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="redSocial whatsapp"
+          >
+            WhatsApp
+          </a>
 
-  </div>
+          <a
+            href="https://www.instagram.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="redSocial instagram"
+          >
+            Instagram
+          </a>
 
-</footer>
+        </div>
 
+      </footer>
 
     </div>
   );

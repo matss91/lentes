@@ -6,13 +6,17 @@ function ProductoDetalle({
   onVolver,
   onAgregar,
 }) {
-  const [fotoSeleccionada, setFotoSeleccionada] =
-    useState(0);
+  const [fotoSeleccionada, setFotoSeleccionada] = useState(0);
+
+  function agregarProducto() {
+    onAgregar(producto);
+  }
 
   return (
     <section className="productoDetalle">
 
       <button
+        type="button"
         className="volver"
         onClick={onVolver}
       >
@@ -24,38 +28,33 @@ function ProductoDetalle({
         <div className="detalleImagen">
 
           {/* FOTO PRINCIPAL */}
+
           <img
             src={producto.imagenes[fotoSeleccionada]}
             alt={producto.nombre}
           />
 
           {/* MINIATURAS */}
+
           <div className="miniaturas">
 
-            {producto.imagenes.map(
-              (imagen, index) => (
-
-                <button
-                  key={imagen}
-                  className={
-                    fotoSeleccionada === index
-                      ? "miniatura activa"
-                      : "miniatura"
-                  }
-                  onClick={() =>
-                    setFotoSeleccionada(index)
-                  }
-                >
-                  <img
-                    src={imagen}
-                    alt={`${producto.nombre} ${
-                      index + 1
-                    }`}
-                  />
-                </button>
-
-              )
-            )}
+            {producto.imagenes.map((imagen, index) => (
+              <button
+                type="button"
+                key={imagen}
+                className={
+                  fotoSeleccionada === index
+                    ? "miniatura activa"
+                    : "miniatura"
+                }
+                onClick={() => setFotoSeleccionada(index)}
+              >
+                <img
+                  src={imagen}
+                  alt={`${producto.nombre} ${index + 1}`}
+                />
+              </button>
+            ))}
 
           </div>
 
@@ -72,13 +71,14 @@ function ProductoDetalle({
             {producto.precio.toLocaleString("es-AR")}
           </p>
 
-         <p className="detalleDescripcion">
-  {producto.descripcion}
-</p>
+          <p className="detalleDescripcion">
+            {producto.descripcion}
+          </p>
 
           <button
+            type="button"
             className="detalleButton"
-            onClick={() => onAgregar(producto)}
+            onClick={agregarProducto}
           >
             Agregar al carrito
           </button>
