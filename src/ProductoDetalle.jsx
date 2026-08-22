@@ -72,10 +72,9 @@ function ProductoDetalle({
             {producto.precio.toLocaleString("es-AR")}
           </p>
 
-          <p className="detalleDescripcion">
-            Anteojos de diseño moderno y cómodo,
-            pensados para acompañarte todos los días.
-          </p>
+         <p className="detalleDescripcion">
+  {producto.descripcion}
+</p>
 
           <button
             className="detalleButton"
