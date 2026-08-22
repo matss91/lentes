@@ -1,6 +1,13 @@
 import { useState } from "react";
 import emailjs from "@emailjs/browser";
 import "./Checkout.css";
+
+import {
+  PAQUETE_ANTEOJO,
+  calcularVolumen,
+  calcularPesoTotal,
+} from "./envio";
+
 function Checkout({
   carrito,
   total,
@@ -12,7 +19,33 @@ function Checkout({
   const [email, setEmail] = useState("");
   const [telefono, setTelefono] = useState("");
   const [direccion, setDireccion] = useState("");
+  const [codigoPostal, setCodigoPostal] = useState("");
+
   const [enviando, setEnviando] = useState(false);
+
+  // ==========================================
+  // DATOS DEL PAQUETE
+  // ==========================================
+
+  const pesoTotal = calcularPesoTotal(cantidadTotal);
+
+  const volumen = calcularVolumen();
+
+  // ==========================================
+  // ENVÍO PROVISORIO
+  // ==========================================
+  // Más adelante reemplazamos esto por
+  // el cálculo real de Correo Argentino.
+
+  const costoEnvio = codigoPostal.trim()
+    ? 8500
+    : 0;
+
+  const totalConEnvio = total + costoEnvio;
+
+  // ==========================================
+  // CONTINUAR AL PAGO
+  // ==========================================
 
   async function continuarAlPago(e) {
     e.preventDefault();
@@ -21,7 +54,8 @@ function Checkout({
       !nombre.trim() ||
       !email.trim() ||
       !telefono.trim() ||
-      !direccion.trim()
+      !direccion.trim() ||
+      !codigoPostal.trim()
     ) {
       alert("Completá todos los datos.");
       return;
@@ -34,6 +68,10 @@ function Checkout({
 
     setEnviando(true);
 
+    // ==========================================
+    // PRODUCTOS
+    // ==========================================
+
     const productosTexto = carrito
       .map(
         (producto) =>
@@ -43,20 +81,40 @@ function Checkout({
       )
       .join("\n");
 
+    // ==========================================
+    // DATOS DEL PEDIDO
+    // ==========================================
+
     const datosPedido = {
       nombre: nombre.trim(),
       email: email.trim(),
       telefono: telefono.trim(),
       direccion: direccion.trim(),
+      codigo_postal: codigoPostal.trim(),
+
       productos: productosTexto,
-      total: `$${total.toLocaleString("es-AR")}`,
+
+      subtotal: `$${total.toLocaleString("es-AR")}`,
+
+      envio: `$${costoEnvio.toLocaleString("es-AR")}`,
+
+      total: `$${totalConEnvio.toLocaleString("es-AR")}`,
+
       cantidad: cantidadTotal,
+
+      peso: `${pesoTotal} g`,
+
+      largo: `${PAQUETE_ANTEOJO.largo} cm`,
+      ancho: `${PAQUETE_ANTEOJO.ancho} cm`,
+      alto: `${PAQUETE_ANTEOJO.alto} cm`,
+
+      volumen: `${volumen} cm³`,
     };
 
     try {
-      // =====================================
-      // 1. ENVIAR PEDIDO POR EMAILJS
-      // =====================================
+      // ==========================================
+      // 1. EMAILJS
+      // ==========================================
 
       await emailjs.send(
         "service_4cgf46y",
@@ -65,9 +123,9 @@ function Checkout({
         "S8765mw_mc9-6_MSO"
       );
 
-      // =====================================
-      // 2. VERIFICAR LINK DE MERCADO PAGO
-      // =====================================
+      // ==========================================
+      // 2. VERIFICAR MERCADO PAGO
+      // ==========================================
 
       if (!linkMercadoPago) {
         alert(
@@ -77,14 +135,16 @@ function Checkout({
         return;
       }
 
-      // =====================================
+      // ==========================================
       // 3. CONFIRMAR PAGO
-      // =====================================
+      // ==========================================
 
       const confirmar = window.confirm(
         `Pedido enviado correctamente.\n\n` +
           `Productos: ${cantidadTotal}\n` +
-          `Total: $${total.toLocaleString("es-AR")}\n\n` +
+          `Subtotal: $${total.toLocaleString("es-AR")}\n` +
+          `Envío: $${costoEnvio.toLocaleString("es-AR")}\n` +
+          `TOTAL: $${totalConEnvio.toLocaleString("es-AR")}\n\n` +
           `¿Querés continuar a Mercado Pago?`
       );
 
@@ -92,11 +152,12 @@ function Checkout({
         return;
       }
 
-      // =====================================
-      // 4. IR A MERCADO PAGO
-      // =====================================
+      // ==========================================
+      // 4. MERCADO PAGO
+      // ==========================================
 
       window.location.href = linkMercadoPago;
+
     } catch (error) {
       console.error("Error EmailJS:", error);
 
@@ -122,6 +183,10 @@ function Checkout({
       <h1>Datos del cliente</h1>
 
       <form onSubmit={continuarAlPago}>
+
+        {/* =====================================
+            DATOS DEL CLIENTE
+        ====================================== */}
 
         <label>
           Nombre
@@ -167,28 +232,102 @@ function Checkout({
           placeholder="Tu dirección"
         />
 
+        <label>
+          Código Postal
+        </label>
+
+        <input
+          type="text"
+          value={codigoPostal}
+          onChange={(e) =>
+            setCodigoPostal(e.target.value)
+          }
+          placeholder="Ej: 1825"
+        />
+
+        {/* =====================================
+            DATOS DEL ENVÍO
+        ====================================== */}
+
+        <h2>Datos del envío</h2>
+
+        <div className="datosEnvio">
+
+          <p>
+            <strong>Cantidad:</strong>{" "}
+            {cantidadTotal} anteojo(s)
+          </p>
+
+          <p>
+            <strong>Peso:</strong>{" "}
+            {pesoTotal} g
+          </p>
+
+          <p>
+            <strong>Medidas:</strong>{" "}
+            {PAQUETE_ANTEOJO.largo} ×{" "}
+            {PAQUETE_ANTEOJO.ancho} ×{" "}
+            {PAQUETE_ANTEOJO.alto} cm
+          </p>
+
+          <p>
+            <strong>Volumen:</strong>{" "}
+            {volumen} cm³
+          </p>
+
+        </div>
+
+        {/* =====================================
+            RESUMEN
+        ====================================== */}
+
         <h2>Resumen del pedido</h2>
 
         {carrito.map((producto) => (
+
           <div key={producto.id}>
+
             <span>
-              {producto.nombre} × {producto.cantidad}
+              {producto.nombre} ×{" "}
+              {producto.cantidad}
             </span>
 
             <strong>
               $
               {(
-                producto.precio * producto.cantidad
+                producto.precio *
+                producto.cantidad
               ).toLocaleString("es-AR")}
             </strong>
+
           </div>
+
         ))}
 
         <hr />
 
+        <p>
+          Subtotal:{" "}
+          <strong>
+            ${total.toLocaleString("es-AR")}
+          </strong>
+        </p>
+
+        <p>
+          Envío:{" "}
+          <strong>
+            ${costoEnvio.toLocaleString("es-AR")}
+          </strong>
+        </p>
+
         <h2>
-          Total: ${total.toLocaleString("es-AR")}
+          Total: $
+          {totalConEnvio.toLocaleString("es-AR")}
         </h2>
+
+        {/* =====================================
+            PAGAR
+        ====================================== */}
 
         <button
           type="submit"
