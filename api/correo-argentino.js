@@ -28,15 +28,13 @@ function calcularCostoEnvio({ peso, alto, ancho, largo }) {
   return Math.round(precio);
 }
 
-// Estado
 app.get("/api/estado", (req, res) => {
   res.json({
     ok: true,
-    mensaje: "Backend funcionando correctamente",
+    mensaje: "Backend de Correo Argentino funcionando",
   });
 });
 
-// Cotizar envío
 app.post("/api/cotizar-envio", (req, res) => {
   const {
     codigoPostal,
@@ -46,13 +44,7 @@ app.post("/api/cotizar-envio", (req, res) => {
     largo,
   } = req.body;
 
-  if (
-    !codigoPostal ||
-    !peso ||
-    !alto ||
-    !ancho ||
-    !largo
-  ) {
+  if (!codigoPostal || !peso || !alto || !ancho || !largo) {
     return res.status(400).json({
       ok: false,
       mensaje: "Faltan datos del envío",
@@ -85,7 +77,6 @@ app.post("/api/cotizar-envio", (req, res) => {
   });
 });
 
-// Crear preferencia de Mercado Pago
 app.post("/api/crear-preferencia", async (req, res) => {
   try {
     const { productos, envio } = req.body;
