@@ -37,7 +37,7 @@ function Checkout({
         PAQUETE_ANTEOJO.peso * cantidadTotal;
 
       const respuesta = await fetch(
-        "http://api/cotizar-envio",
+        "api/cotizar-envio",
         {
           method: "POST",
           headers: {
