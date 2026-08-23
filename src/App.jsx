@@ -3,7 +3,8 @@ import "./App.css";
 import Productos from "./components/Productos";
 import ProductoDetalle from "./ProductoDetalle";
 import Checkout from "./Checkout";
-const API_URL = import.meta.env.VITE_API_URL;
+import "dotenv/config";
+const token = process.env.MP_ACCESS_TOKEN;
 console.log("API_URL =", API_URL,"DESDE APP");
 import { productos, PRECIO } from "./productos";
 import { linksMercadoPago } from "./mercadoPago";
@@ -13,7 +14,7 @@ function App() {
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [mostrarCheckout, setMostrarCheckout] = useState(false);
 useEffect(() => {
-  fetch(`${API_URL}/api/estado`)
+  fetch(`${token}/api/estado`)
     .then((res) => res.json())
     .then((data) => {
       console.log("Respuesta del backend:", data);
