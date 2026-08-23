@@ -4,6 +4,7 @@ import "./Checkout.css";
 import { PAQUETE_ANTEOJO } from "./productos";
 import { crearPago } from "./services/mercadoPago";
 const API_URL = import.meta.env.VITE_API_URL;
+console.log("API_URL =", API_URL,"DESDE CHECKOUT");
 function Checkout({
   carrito,
   total,

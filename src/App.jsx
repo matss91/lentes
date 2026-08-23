@@ -4,6 +4,7 @@ import Productos from "./components/Productos";
 import ProductoDetalle from "./ProductoDetalle";
 import Checkout from "./Checkout";
 const API_URL = import.meta.env.VITE_API_URL;
+console.log("API_URL =", API_URL,"DESDE APP");
 import { productos, PRECIO } from "./productos";
 import { linksMercadoPago } from "./mercadoPago";
 import Carrito from "./Carrito";
