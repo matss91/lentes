@@ -1,6 +1,9 @@
+
+const API_URL = import.meta.env.VITE_API_URL;
+
 export async function crearPago(productos, envio) {
   const respuesta = await fetch(
-    "http://localhost:3001/api/crear-preferencia",
+    `http://${ API_URL}/api/crear-preferencia`,
     {
       method: "POST",
       headers: {
