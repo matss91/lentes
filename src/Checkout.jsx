@@ -3,10 +3,8 @@ import emailjs from "@emailjs/browser";
 import "./Checkout.css";
 import { PAQUETE_ANTEOJO } from "./productos";
 import { crearPago } from "./services/mercadoPago";
-import "dotenv/config";
-
-const url = process.env.VITE_API_URL;
-console.log("API_URL =", API_URL,"DESDE CHECKOUT");
+const API_URL = import.meta.env.VITE_API_URL;
+console.log("API_URL =", import.meta.env.VITE_API_URL);
 function Checkout({
   carrito,
   total,
@@ -40,7 +38,7 @@ function Checkout({
         PAQUETE_ANTEOJO.peso * cantidadTotal;
 
       const respuesta = await fetch(
-        `${url}/api/cotizar-envio`,
+        `${API_URL}/api/cotizar-envio`,
         {
           method: "POST",
           headers: {
