@@ -1,13 +1,7 @@
 import { useState } from "react";
 import emailjs from "@emailjs/browser";
 import "./Checkout.css";
-
-import {
-  PAQUETE_ANTEOJO,
-  calcularVolumen,
-  calcularPesoTotal,
-} from "./envio";
-
+import { PAQUETE_ANTEOJO } from "./productos";
 function Checkout({
   carrito,
   total,
@@ -22,26 +16,72 @@ function Checkout({
   const [codigoPostal, setCodigoPostal] = useState("");
 
   const [enviando, setEnviando] = useState(false);
+  const [costoEnvio, setCostoEnvio] = useState(0);
+  const [calculandoEnvio, setCalculandoEnvio] = useState(false);
 
   // ==========================================
-  // DATOS DEL PAQUETE
+  // CALCULAR ENVÍO
   // ==========================================
 
-  const pesoTotal = calcularPesoTotal(cantidadTotal);
+  async function calcularCostoEnvio() {
+    if (!codigoPostal.trim()) {
+      alert("Ingresá tu código postal.");
+      return;
+    }
 
-  const volumen = calcularVolumen();
+    setCalculandoEnvio(true);
 
-  // ==========================================
-  // ENVÍO PROVISORIO
-  // ==========================================
-  // Más adelante reemplazamos esto por
-  // el cálculo real de Correo Argentino.
+   try {
+  const pesoTotal =
+    PAQUETE_ANTEOJO.peso * cantidadTotal;
+    
 
-  const costoEnvio = codigoPostal.trim()
-    ? 8500
-    : 0;
+  const respuesta = await fetch(
+    "http://localhost:3001/api/cotizar-envio",
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        codigoPostal: codigoPostal.trim(),
+        peso: pesoTotal,
+        alto: PAQUETE_ANTEOJO.alto,
+        ancho: PAQUETE_ANTEOJO.ancho,
+        largo: PAQUETE_ANTEOJO.largo,
+      }),
+    }
+  );
 
-  const totalConEnvio = total + costoEnvio;
+      const datos = await respuesta.json();
+
+      console.log("Respuesta del backend:", datos);
+
+      if (!respuesta.ok) {
+        throw new Error(
+          datos.mensaje || "Error calculando envío"
+        );
+      }
+if (!datos.envio || typeof datos.envio.precio !== "number") {
+  throw new Error("El backend no devolvió un precio de envío válido.");
+}
+
+setCostoEnvio(datos.envio.precio);
+
+alert(
+  `Envío calculado: $${datos.envio.precio.toLocaleString("es-AR")}`
+);
+
+    } catch (error) {
+      console.error("Error calculando envío:", error);
+
+      alert(
+        "No se pudo consultar el envío."
+      );
+    } finally {
+      setCalculandoEnvio(false);
+    }
+  }
 
   // ==========================================
   // CONTINUAR AL PAGO
@@ -85,6 +125,8 @@ function Checkout({
     // DATOS DEL PEDIDO
     // ==========================================
 
+    const totalConEnvio = total + costoEnvio;
+
     const datosPedido = {
       nombre: nombre.trim(),
       email: email.trim(),
@@ -101,14 +143,6 @@ function Checkout({
       total: `$${totalConEnvio.toLocaleString("es-AR")}`,
 
       cantidad: cantidadTotal,
-
-      peso: `${pesoTotal} g`,
-
-      largo: `${PAQUETE_ANTEOJO.largo} cm`,
-      ancho: `${PAQUETE_ANTEOJO.ancho} cm`,
-      alto: `${PAQUETE_ANTEOJO.alto} cm`,
-
-      volumen: `${volumen} cm³`,
     };
 
     try {
@@ -239,57 +273,31 @@ function Checkout({
         <input
           type="text"
           value={codigoPostal}
-          onChange={(e) =>
-            setCodigoPostal(e.target.value)
-          }
+          onChange={(e) => setCodigoPostal(e.target.value)}
           placeholder="Ej: 1825"
         />
 
-        {/* =====================================
-            DATOS DEL ENVÍO
-        ====================================== */}
-
-        <h2>Datos del envío</h2>
-
-        <div className="datosEnvio">
-
-          <p>
-            <strong>Cantidad:</strong>{" "}
-            {cantidadTotal} anteojo(s)
-          </p>
-
-          <p>
-            <strong>Peso:</strong>{" "}
-            {pesoTotal} g
-          </p>
-
-          <p>
-            <strong>Medidas:</strong>{" "}
-            {PAQUETE_ANTEOJO.largo} ×{" "}
-            {PAQUETE_ANTEOJO.ancho} ×{" "}
-            {PAQUETE_ANTEOJO.alto} cm
-          </p>
-
-          <p>
-            <strong>Volumen:</strong>{" "}
-            {volumen} cm³
-          </p>
-
-        </div>
+        <button
+          type="button"
+          onClick={calcularCostoEnvio}
+          disabled={calculandoEnvio}
+        >
+          {calculandoEnvio
+            ? "Calculando envío..."
+            : "Calcular envío"}
+        </button>
 
         {/* =====================================
-            RESUMEN
+            RESUMEN DEL PEDIDO
         ====================================== */}
 
         <h2>Resumen del pedido</h2>
 
         {carrito.map((producto) => (
-
           <div key={producto.id}>
 
             <span>
-              {producto.nombre} ×{" "}
-              {producto.cantidad}
+              {producto.nombre} × {producto.cantidad}
             </span>
 
             <strong>
@@ -301,7 +309,6 @@ function Checkout({
             </strong>
 
           </div>
-
         ))}
 
         <hr />
@@ -322,7 +329,7 @@ function Checkout({
 
         <h2>
           Total: $
-          {totalConEnvio.toLocaleString("es-AR")}
+          {(total + costoEnvio).toLocaleString("es-AR")}
         </h2>
 
         {/* =====================================

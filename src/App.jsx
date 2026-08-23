@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./App.css";
-
+import Productos from "./components/Productos";
 import ProductoDetalle from "./ProductoDetalle";
 import Checkout from "./Checkout";
 
@@ -11,7 +11,16 @@ function App() {
   const [carrito, setCarrito] = useState([]);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [mostrarCheckout, setMostrarCheckout] = useState(false);
-
+useEffect(() => {
+  fetch("http://localhost:3001/api/estado")
+    .then((res) => res.json())
+    .then((data) => {
+      console.log("Respuesta del backend:", data);
+    })
+    .catch((error) => {
+      console.error("Error conectando con backend:", error);
+    });
+}, []);
   function agregarAlCarrito(producto) {
     setCarrito((carritoActual) => {
       const productoExistente = carritoActual.find(
@@ -145,58 +154,11 @@ function App() {
             </a>
           </section>
 
-          <main id="productos">
-            <h2>
-              Nuestros anteojos
-            </h2>
-
-            <div className="productos">
-              {productos.map((producto) => (
-                <div
-                  className="producto"
-                  key={producto.id}
-                >
-                  <img
-                    src={producto.imagenes[0]}
-                    alt={producto.nombre}
-                  />
-
-                  <div className="productoInfo">
-                    <h3>
-                      {producto.nombre}
-                    </h3>
-
-                    <p className="precio">
-                      $
-                      {producto.precio.toLocaleString(
-                        "es-AR"
-                      )}
-                    </p>
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setProductoSeleccionado(producto)
-                      }
-                    >
-                      Ver detalle
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        agregarAlCarrito(producto);
-                      }}
-                    >
-                      Agregar al carrito
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </main>
+<Productos
+  productos={productos}
+  onVerDetalle={setProductoSeleccionado}
+  onAgregar={agregarAlCarrito}
+/>
         </>
       )}
 
