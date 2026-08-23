@@ -1,8 +1,12 @@
 import express from "express";
 import cors from "cors";
-
+import "dotenv/config";
+import { MercadoPagoConfig, Preference } from "mercadopago";
+import "dotenv/config";
 const app = express();
-
+const client = new MercadoPagoConfig({
+  accessToken: process.env.MP_ACCESS_TOKEN,
+});
 app.use(cors());
 app.use(express.json());
 
@@ -75,6 +79,122 @@ app.post("/api/cotizar-envio", (req, res) => {
       servicio: "PAQ.AR - TEST",
     },
   });
+});
+
+app.post("/api/crear-preferencia", async (req, res) => {
+  try {
+    const { productos, envio } = req.body;
+
+    if (!productos || productos.length === 0) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "No hay productos en el carrito",
+      });
+    }
+
+    const items = productos.map((producto) => ({
+      title: producto.nombre,
+      quantity: Number(producto.cantidad),
+      unit_price: Number(producto.precio),
+      currency_id: "ARS",
+    }));
+
+    if (Number(envio) > 0) {
+      items.push({
+        title: "Envío",
+        quantity: 1,
+        unit_price: Number(envio),
+        currency_id: "ARS",
+      });
+    }
+
+    const preference = new Preference(client);
+
+ const resultado = await preference.create({
+  body: {
+    items,
+
+    back_urls: {
+      success: "http://localhost:5173",
+      failure: "http://localhost:5173",
+      pending: "http://localhost:5173",
+    },
+  },
+});
+
+    res.json({
+      ok: true,
+      id: resultado.id,
+      link: resultado.init_point,
+    });
+
+  } catch (error) {
+    console.error("Error creando preferencia:", error);
+
+    res.status(500).json({
+      ok: false,
+      mensaje: "No se pudo crear el pago",
+    });
+  }
+});
+
+app.post("/api/crear-preferencia", async (req, res) => {
+  try {
+    const { productos, envio } = req.body;
+
+    if (!productos || productos.length === 0) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "No hay productos en el carrito",
+      });
+    }
+
+    const items = productos.map((producto) => ({
+      title: producto.nombre,
+      quantity: Number(producto.cantidad),
+      unit_price: Number(producto.precio),
+      currency_id: "ARS",
+    }));
+
+    if (Number(envio) > 0) {
+      items.push({
+        title: "Envío",
+        quantity: 1,
+        unit_price: Number(envio),
+        currency_id: "ARS",
+      });
+    }
+
+    const preference = new Preference(client);
+
+    const resultado = await preference.create({
+      body: {
+        items,
+
+        back_urls: {
+          success: "http://localhost:5173",
+          failure: "http://localhost:5173",
+          pending: "http://localhost:5173",
+        },
+
+        auto_return: "approved",
+      },
+    });
+
+    res.json({
+      ok: true,
+      id: resultado.id,
+      link: resultado.init_point,
+    });
+
+  } catch (error) {
+    console.error("Error creando preferencia:", error);
+
+    res.status(500).json({
+      ok: false,
+      mensaje: "No se pudo crear el pago",
+    });
+  }
 });
 const PORT = 3001;
 

@@ -2,11 +2,12 @@ import { useState } from "react";
 import emailjs from "@emailjs/browser";
 import "./Checkout.css";
 import { PAQUETE_ANTEOJO } from "./productos";
+import { crearPago } from "./services/mercadoPago";
+
 function Checkout({
   carrito,
   total,
   cantidadTotal,
-  linkMercadoPago,
   onVolver,
 }) {
   const [nombre, setNombre] = useState("");
@@ -31,27 +32,26 @@ function Checkout({
 
     setCalculandoEnvio(true);
 
-   try {
-  const pesoTotal =
-    PAQUETE_ANTEOJO.peso * cantidadTotal;
-    
+    try {
+      const pesoTotal =
+        PAQUETE_ANTEOJO.peso * cantidadTotal;
 
-  const respuesta = await fetch(
-    "http://localhost:3001/api/cotizar-envio",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        codigoPostal: codigoPostal.trim(),
-        peso: pesoTotal,
-        alto: PAQUETE_ANTEOJO.alto,
-        ancho: PAQUETE_ANTEOJO.ancho,
-        largo: PAQUETE_ANTEOJO.largo,
-      }),
-    }
-  );
+      const respuesta = await fetch(
+        "http://localhost:3001/api/cotizar-envio",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            codigoPostal: codigoPostal.trim(),
+            peso: pesoTotal,
+            alto: PAQUETE_ANTEOJO.alto,
+            ancho: PAQUETE_ANTEOJO.ancho,
+            largo: PAQUETE_ANTEOJO.largo,
+          }),
+        }
+      );
 
       const datos = await respuesta.json();
 
@@ -62,22 +62,27 @@ function Checkout({
           datos.mensaje || "Error calculando envío"
         );
       }
-if (!datos.envio || typeof datos.envio.precio !== "number") {
-  throw new Error("El backend no devolvió un precio de envío válido.");
-}
 
-setCostoEnvio(datos.envio.precio);
+      if (
+        !datos.envio ||
+        typeof datos.envio.precio !== "number"
+      ) {
+        throw new Error(
+          "El backend no devolvió un precio de envío válido."
+        );
+      }
 
-alert(
-  `Envío calculado: $${datos.envio.precio.toLocaleString("es-AR")}`
-);
+      setCostoEnvio(datos.envio.precio);
 
+      alert(
+        `Envío calculado: $${datos.envio.precio.toLocaleString(
+          "es-AR"
+        )}`
+      );
     } catch (error) {
       console.error("Error calculando envío:", error);
 
-      alert(
-        "No se pudo consultar el envío."
-      );
+      alert("No se pudo consultar el envío.");
     } finally {
       setCalculandoEnvio(false);
     }
@@ -109,7 +114,7 @@ alert(
     setEnviando(true);
 
     // ==========================================
-    // PRODUCTOS
+    // PRODUCTOS PARA EMAILJS
     // ==========================================
 
     const productosTexto = carrito
@@ -158,19 +163,7 @@ alert(
       );
 
       // ==========================================
-      // 2. VERIFICAR MERCADO PAGO
-      // ==========================================
-
-      if (!linkMercadoPago) {
-        alert(
-          `El pedido fue registrado correctamente, pero no existe un link de Mercado Pago configurado para ${cantidadTotal} producto(s).`
-        );
-
-        return;
-      }
-
-      // ==========================================
-      // 3. CONFIRMAR PAGO
+      // 2. CONFIRMAR PAGO
       // ==========================================
 
       const confirmar = window.confirm(
@@ -187,17 +180,35 @@ alert(
       }
 
       // ==========================================
-      // 4. MERCADO PAGO
+      // 3. CREAR PAGO DINÁMICO
       // ==========================================
 
-      window.location.href = linkMercadoPago;
+      const pago = await crearPago(
+        carrito,
+        costoEnvio
+      );
+
+      if (!pago.ok || !pago.link) {
+        throw new Error(
+          "Mercado Pago no devolvió un link de pago."
+        );
+      }
+
+      // ==========================================
+      // 4. IR A MERCADO PAGO
+      // ==========================================
+
+      window.location.href = pago.link;
 
     } catch (error) {
-      console.error("Error EmailJS:", error);
+      console.error(
+        "Error en el checkout:",
+        error
+      );
 
       alert(
-        "No se pudo enviar el pedido.\n\n" +
-          "No vamos a enviarte a Mercado Pago hasta que el pedido se registre correctamente."
+        "No se pudo completar el pedido o crear el pago.\n\n" +
+          "Revisá la consola para ver el error."
       );
     } finally {
       setEnviando(false);
@@ -229,7 +240,9 @@ alert(
         <input
           type="text"
           value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
+          onChange={(e) =>
+            setNombre(e.target.value)
+          }
           placeholder="Tu nombre"
         />
 
@@ -240,7 +253,9 @@ alert(
         <input
           type="email"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) =>
+            setEmail(e.target.value)
+          }
           placeholder="tu@email.com"
         />
 
@@ -251,7 +266,9 @@ alert(
         <input
           type="tel"
           value={telefono}
-          onChange={(e) => setTelefono(e.target.value)}
+          onChange={(e) =>
+            setTelefono(e.target.value)
+          }
           placeholder="Tu teléfono"
         />
 
@@ -262,7 +279,9 @@ alert(
         <input
           type="text"
           value={direccion}
-          onChange={(e) => setDireccion(e.target.value)}
+          onChange={(e) =>
+            setDireccion(e.target.value)
+          }
           placeholder="Tu dirección"
         />
 
@@ -273,7 +292,9 @@ alert(
         <input
           type="text"
           value={codigoPostal}
-          onChange={(e) => setCodigoPostal(e.target.value)}
+          onChange={(e) =>
+            setCodigoPostal(e.target.value)
+          }
           placeholder="Ej: 1825"
         />
 
@@ -297,7 +318,8 @@ alert(
           <div key={producto.id}>
 
             <span>
-              {producto.nombre} × {producto.cantidad}
+              {producto.nombre} ×{" "}
+              {producto.cantidad}
             </span>
 
             <strong>
@@ -329,7 +351,9 @@ alert(
 
         <h2>
           Total: $
-          {(total + costoEnvio).toLocaleString("es-AR")}
+          {(total + costoEnvio).toLocaleString(
+            "es-AR"
+          )}
         </h2>
 
         {/* =====================================

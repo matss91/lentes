@@ -4,17 +4,18 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-  "dev": "vite",
-  "server": "node api/correo-argentino.js",
-  "build": "vite build",
-  "lint": "oxlint",
-  "preview": "vite preview"
-},
+    "dev": "vite",
+    "server": "node api/correo-argentino.js",
+    "build": "vite build",
+    "lint": "oxlint",
+    "preview": "vite preview"
+  },
   "dependencies": {
     "@emailjs/browser": "^4.4.1",
     "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
+    "mercadopago": "^3.4.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8"
   },
