@@ -2,11 +2,13 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import { MercadoPagoConfig, Preference } from "mercadopago";
-import "dotenv/config";
+
 const app = express();
+
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN,
 });
+
 app.use(cors());
 app.use(express.json());
 
@@ -26,12 +28,15 @@ function calcularCostoEnvio({ peso, alto, ancho, largo }) {
   return Math.round(precio);
 }
 
+// Estado
 app.get("/api/estado", (req, res) => {
   res.json({
     ok: true,
-    mensaje: "Backend de Correo Argentino funcionando",
+    mensaje: "Backend funcionando correctamente",
   });
 });
+
+// Cotizar envío
 app.post("/api/cotizar-envio", (req, res) => {
   const {
     codigoPostal,
@@ -66,7 +71,6 @@ app.post("/api/cotizar-envio", (req, res) => {
   res.json({
     ok: true,
     mensaje: "Cotización calculada correctamente",
-
     envio: {
       codigoPostal,
       peso,
@@ -81,63 +85,7 @@ app.post("/api/cotizar-envio", (req, res) => {
   });
 });
 
-app.post("/api/crear-preferencia", async (req, res) => {
-  try {
-    const { productos, envio } = req.body;
-
-    if (!productos || productos.length === 0) {
-      return res.status(400).json({
-        ok: false,
-        mensaje: "No hay productos en el carrito",
-      });
-    }
-
-    const items = productos.map((producto) => ({
-      title: producto.nombre,
-      quantity: Number(producto.cantidad),
-      unit_price: Number(producto.precio),
-      currency_id: "ARS",
-    }));
-
-    if (Number(envio) > 0) {
-      items.push({
-        title: "Envío",
-        quantity: 1,
-        unit_price: Number(envio),
-        currency_id: "ARS",
-      });
-    }
-
-    const preference = new Preference(client);
-
- const resultado = await preference.create({
-  body: {
-    items,
-
-    back_urls: {
-      success: "http://localhost:5173",
-      failure: "http://localhost:5173",
-      pending: "http://localhost:5173",
-    },
-  },
-});
-
-    res.json({
-      ok: true,
-      id: resultado.id,
-      link: resultado.init_point,
-    });
-
-  } catch (error) {
-    console.error("Error creando preferencia:", error);
-
-    res.status(500).json({
-      ok: false,
-      mensaje: "No se pudo crear el pago",
-    });
-  }
-});
-
+// Crear preferencia de Mercado Pago
 app.post("/api/crear-preferencia", async (req, res) => {
   try {
     const { productos, envio } = req.body;
@@ -172,9 +120,9 @@ app.post("/api/crear-preferencia", async (req, res) => {
         items,
 
         back_urls: {
-          success: "http://localhost:5173",
-          failure: "http://localhost:5173",
-          pending: "http://localhost:5173",
+          success: "https://lentes-mocha.vercel.app",
+          failure: "https://lentes-mocha.vercel.app",
+          pending: "https://lentes-mocha.vercel.app",
         },
 
         auto_return: "approved",
@@ -196,8 +144,5 @@ app.post("/api/crear-preferencia", async (req, res) => {
     });
   }
 });
-const PORT = 3001;
 
-app.listen(PORT, () => {
-  console.log(`Backend funcionando en http://localhost:${PORT}`);
-});
+export default app;

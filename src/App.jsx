@@ -12,7 +12,7 @@ function App() {
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [mostrarCheckout, setMostrarCheckout] = useState(false);
 useEffect(() => {
-  fetch("http://localhost:3001/api/estado")
+  fetch("/api/estado")
     .then((res) => res.json())
     .then((data) => {
       console.log("Respuesta del backend:", data);
