@@ -4,13 +4,14 @@ import Productos from "./components/Productos";
 import ProductoDetalle from "./ProductoDetalle";
 import Checkout from "./Checkout";
 const API_URL = import.meta.env.VITE_API_URL;
-import { productos, PRECIO } from "./productos";
+
 import { linksMercadoPago } from "./mercadoPago";
 import Carrito from "./Carrito";
 function App() {
   const [carrito, setCarrito] = useState([]);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [mostrarCheckout, setMostrarCheckout] = useState(false);
+  const [productos, setProductos] = useState([]);
 useEffect(() => {
   fetch(`${API_URL}/api/estado`)
     .then((res) => res.json())
@@ -21,6 +22,19 @@ useEffect(() => {
       console.error("Error conectando con backend:", error);
     });
 }, []);
+
+useEffect(() => {
+  fetch("/productos.json")
+    .then((res) => res.json())
+    .then((data) => {
+      setProductos(data);
+    })
+    .catch((error) => {
+      console.error("Error cargando productos:", error);
+    });
+}, []);
+
+
   function agregarAlCarrito(producto) {
     setCarrito((carritoActual) => {
       const productoExistente = carritoActual.find(
@@ -141,11 +155,9 @@ useEffect(() => {
               Anteojos que van con vos
             </h1>
 
-            <p>
-              Todos nuestros modelos a $
-              {PRECIO.toLocaleString("es-AR")}
-            </p>
-
+           <p>
+  Todos nuestros modelos a $120.000
+</p>
             <a
               href="#productos"
               className="heroButton"
