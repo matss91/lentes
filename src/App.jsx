@@ -4,6 +4,7 @@ import Productos from "./components/Productos";
 import ProductoDetalle from "./ProductoDetalle";
 import Checkout from "./Checkout";
 const API_URL = import.meta.env.VITE_API_URL;
+import Login from "./Login";
 
 import { linksMercadoPago } from "./mercadoPago";
 import Carrito from "./Carrito";
@@ -12,6 +13,7 @@ function App() {
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [mostrarCheckout, setMostrarCheckout] = useState(false);
   const [productos, setProductos] = useState([]);
+  <Login onLogin={() => console.log("Login correcto")} />
 useEffect(() => {
   fetch(`${API_URL}/api/estado`)
     .then((res) => res.json())
