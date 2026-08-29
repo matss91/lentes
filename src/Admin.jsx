@@ -4,27 +4,50 @@ import { useState } from "react";
 function Admin() {
   const [nombre, setNombre] = useState("");
   const [precio, setPrecio] = useState("");
-  const [imagen, setImagen] = useState("");
   const [descripcion, setDescripcion] = useState("");
+
+  const [imagenes, setImagenes] = useState([""]);
+
+  function cambiarImagen(index, valor) {
+    const nuevasImagenes = [...imagenes];
+    nuevasImagenes[index] = valor;
+    setImagenes(nuevasImagenes);
+  }
+
+  function agregarCampoImagen() {
+    if (imagenes.length < 4) {
+      setImagenes([...imagenes, ""]);
+    }
+  }
+
+  function eliminarCampoImagen(index) {
+    if (imagenes.length > 1) {
+      setImagenes(imagenes.filter((_, i) => i !== index));
+    }
+  }
 
   function agregarProducto(e) {
     e.preventDefault();
 
+    const imagenesFiltradas = imagenes.filter(
+      (imagen) => imagen.trim() !== ""
+    );
+
     const producto = {
-      nombre,
+      nombre: nombre.trim(),
       precio: Number(precio),
-      imagen,
-      descripcion,
+      descripcion: descripcion.trim(),
+      imagenes: imagenesFiltradas,
     };
 
     console.log("Producto a agregar:", producto);
 
-    alert("Producto preparado para agregar");
+    alert("Producto preparado correctamente");
 
     setNombre("");
     setPrecio("");
-    setImagen("");
     setDescripcion("");
+    setImagenes([""]);
   }
 
   return (
@@ -43,7 +66,7 @@ function Admin() {
             type="text"
             value={nombre}
             onChange={(e) => setNombre(e.target.value)}
-            placeholder="Ej: Anteojo Modern"
+            placeholder="Ej: Ray-Ban"
             required
           />
         </div>
@@ -66,20 +89,6 @@ function Admin() {
         <br />
 
         <div>
-          <label>Imagen</label>
-          <br />
-          <input
-            type="text"
-            value={imagen}
-            onChange={(e) => setImagen(e.target.value)}
-            placeholder="/anteojos/1.jpg"
-            required
-          />
-        </div>
-
-        <br />
-
-        <div>
           <label>Descripción</label>
           <br />
           <textarea
@@ -88,6 +97,46 @@ function Admin() {
             placeholder="Descripción del anteojo"
             required
           />
+        </div>
+
+        <br />
+
+        <div>
+          <label>Imágenes</label>
+
+          {imagenes.map((imagen, index) => (
+            <div key={index} style={{ marginTop: "10px" }}>
+              <input
+                type="text"
+                value={imagen}
+                onChange={(e) =>
+                  cambiarImagen(index, e.target.value)
+                }
+                placeholder={`/anteojos/${index + 1}.jpg`}
+                required={index === 0}
+              />
+
+              {imagenes.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() => eliminarCampoImagen(index)}
+                  style={{ marginLeft: "5px" }}
+                >
+                  Eliminar
+                </button>
+              )}
+            </div>
+          ))}
+
+          {imagenes.length < 4 && (
+            <button
+              type="button"
+              onClick={agregarCampoImagen}
+              style={{ marginTop: "10px" }}
+            >
+              + Agregar otra imagen
+            </button>
+          )}
         </div>
 
         <br />
