@@ -1,9 +1,3 @@
 {
-  "version": 2,
-  "routes": [
-    {
-      "src": "/api/(.*)",
-      "dest": "/api/correo-argentino.js"
-    }
-  ]
+  "version": 2
 }
