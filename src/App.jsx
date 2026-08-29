@@ -4,7 +4,7 @@ import Productos from "./components/Productos";
 import ProductoDetalle from "./ProductoDetalle";
 import Checkout from "./Checkout";
 import Login from "./Login";
-
+import Admin from "./Admin";
 import { linksMercadoPago } from "./mercadoPago";
 import Carrito from "./Carrito";
 function App() {
@@ -13,7 +13,7 @@ function App() {
   const [mostrarCheckout, setMostrarCheckout] = useState(false);
   const [productos, setProductos] = useState([]);
   const [mostrarLogin, setMostrarLogin] = useState(false);
-
+const [mostrarAdmin, setMostrarAdmin] = useState(false);
 useEffect(() => {
   fetch("/productos.json")
     .then((res) => res.json())
@@ -107,11 +107,16 @@ useEffect(() => {
     agregarAlCarrito(producto);
     setProductoSeleccionado(null);
   }
+if (mostrarAdmin) {
+  return <Admin />;
+}
+
 if (mostrarLogin) {
   return (
     <Login
       onLogin={() => {
-        console.log("Login correcto");
+        setMostrarLogin(false);
+        setMostrarAdmin(true);
       }}
     />
   );
