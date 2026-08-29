@@ -43,23 +43,31 @@ export default async function handler(req, res) {
   }
 
   // GET: obtener productos
-  if (req.method === "GET") {
-    try {
-      const blob = await head(NOMBRE_ARCHIVO);
+if (req.method === "GET") {
+  try {
+    const blob = await head(NOMBRE_ARCHIVO);
 
-      const respuesta = await fetch(blob.url);
-      const productos = await respuesta.json();
+    const respuesta = await fetch(blob.url);
 
-      return res.status(200).json(productos);
-    } catch (error) {
-      console.error("Error leyendo productos:", error);
-
-      return res.status(500).json({
-        ok: false,
-        mensaje: "No se pudieron obtener los productos",
-      });
+    if (!respuesta.ok) {
+      throw new Error(
+        `Error descargando Blob: ${respuesta.status}`
+      );
     }
+
+    const productos = await respuesta.json();
+
+    return res.status(200).json(productos);
+  } catch (error) {
+    console.error("ERROR LEYENDO PRODUCTOS:", error);
+
+    return res.status(500).json({
+      ok: false,
+      mensaje: "No se pudieron obtener los productos",
+      error: error.message,
+    });
   }
+}
 
   // POST: agregar producto
   if (req.method === "POST") {
