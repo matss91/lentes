@@ -1,11 +1,11 @@
-
-import crypto from "crypto";
+```js
+import jwt from "jsonwebtoken";
 
 export default function handler(req, res) {
   // CORS
   res.setHeader(
     "Access-Control-Allow-Origin",
-    "https://lentes-git-master-matss91s-projects.vercel.app"
+    "https://lentes-mocha.vercel.app"
   );
 
   res.setHeader(
@@ -18,7 +18,7 @@ export default function handler(req, res) {
     "Content-Type"
   );
 
-  // Responder al preflight del navegador
+  // Preflight
   if (req.method === "OPTIONS") {
     return res.status(200).end();
   }
@@ -34,8 +34,9 @@ export default function handler(req, res) {
 
   const adminUsuario = process.env.ADMIN_USER;
   const adminPassword = process.env.ADMIN_PASSWORD;
+  const jwtSecret = process.env.JWT_SECRET;
 
-  if (!adminUsuario || !adminPassword) {
+  if (!adminUsuario || !adminPassword || !jwtSecret) {
     return res.status(500).json({
       ok: false,
       mensaje: "El administrador no está configurado",
@@ -57,11 +58,20 @@ export default function handler(req, res) {
     });
   }
 
-  const token = crypto.randomBytes(32).toString("hex");
+  // Crear token firmado
+  const token = jwt.sign(
+    {
+      rol: "admin",
+    },
+    jwtSecret,
+    {
+      expiresIn: "2h",
+    }
+  );
 
   return res.status(200).json({
     ok: true,
     token,
   });
 }
-
+```
