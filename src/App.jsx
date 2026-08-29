@@ -15,7 +15,7 @@ function App() {
   const [mostrarLogin, setMostrarLogin] = useState(false);
 const [mostrarAdmin, setMostrarAdmin] = useState(false);
 useEffect(() => {
-  fetch("/productos.json")
+  fetch(`${API_URL}/api/productos`)
     .then((res) => res.json())
     .then((data) => {
       setProductos(data);
