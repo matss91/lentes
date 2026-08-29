@@ -1,12 +1,17 @@
 
+
 import { useState } from "react";
+
+const API_URL = import.meta.env.VITE_API_URL;
 
 function Admin() {
   const [nombre, setNombre] = useState("");
   const [precio, setPrecio] = useState("");
   const [descripcion, setDescripcion] = useState("");
-
   const [imagenes, setImagenes] = useState([""]);
+
+  const [mensaje, setMensaje] = useState("");
+  const [cargando, setCargando] = useState(false);
 
   function cambiarImagen(index, valor) {
     const nuevasImagenes = [...imagenes];
@@ -26,12 +31,23 @@ function Admin() {
     }
   }
 
-  function agregarProducto(e) {
+  async function agregarProducto(e) {
     e.preventDefault();
 
-    const imagenesFiltradas = imagenes.filter(
-      (imagen) => imagen.trim() !== ""
-    );
+    setMensaje("");
+    setCargando(true);
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      setMensaje("No hay sesión de administrador.");
+      setCargando(false);
+      return;
+    }
+
+    const imagenesFiltradas = imagenes
+      .map((imagen) => imagen.trim())
+      .filter(Boolean);
 
     const producto = {
       nombre: nombre.trim(),
@@ -40,14 +56,42 @@ function Admin() {
       imagenes: imagenesFiltradas,
     };
 
-    console.log("Producto a agregar:", producto);
+    try {
+      const respuesta = await fetch(`${API_URL}/api/productos`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(producto),
+      });
 
-    alert("Producto preparado correctamente");
+      const texto = await respuesta.text();
 
-    setNombre("");
-    setPrecio("");
-    setDescripcion("");
-    setImagenes([""]);
+      let data;
+
+      try {
+        data = JSON.parse(texto);
+      } catch {
+        throw new Error("El servidor no devolvió una respuesta JSON válida.");
+      }
+
+      if (!respuesta.ok) {
+        throw new Error(data.mensaje || "No se pudo agregar el producto.");
+      }
+
+      setMensaje("Producto agregado correctamente.");
+
+      setNombre("");
+      setPrecio("");
+      setDescripcion("");
+      setImagenes([""]);
+    } catch (error) {
+      console.error("Error agregando producto:", error);
+      setMensaje(error.message);
+    } finally {
+      setCargando(false);
+    }
   }
 
   return (
@@ -141,10 +185,12 @@ function Admin() {
 
         <br />
 
-        <button type="submit">
-          Agregar anteojo
+        <button type="submit" disabled={cargando}>
+          {cargando ? "Guardando..." : "Agregar anteojo"}
         </button>
       </form>
+
+      {mensaje && <p>{mensaje}</p>}
     </div>
   );
 }
