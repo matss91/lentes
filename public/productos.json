@@ -2,7 +2,7 @@
   {
     "id": 1,
     "nombre": "Balenciaga",
-    "precio": 120000,
+    "precio": 12000,
     "descripcion": "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
     "imagenes": [
       "/anteojos/1.jpg",
@@ -14,7 +14,7 @@
   {
     "id": 2,
     "nombre": "Burberry",
-    "precio": 120000,
+    "precio": 12000,
     "descripcion": "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
     "imagenes": [
       "/anteojos/2.jpg",
@@ -25,7 +25,7 @@
   {
     "id": 3,
     "nombre": "Chanel",
-    "precio": 120000,
+    "precio": 150000,
     "descripcion": "Precisión arquitectónica con energía vibrante. Descubrí elegancia diseñada para tu mirada.",
     "imagenes": [
       "/anteojos/3.jpg",
