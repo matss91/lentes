@@ -1,4 +1,3 @@
-
 import jwt from "jsonwebtoken";
 import { put, head } from "@vercel/blob";
 
@@ -45,9 +44,15 @@ export default async function handler(req, res) {
   // GET: obtener productos
 if (req.method === "GET") {
   try {
-    const blob = await head(NOMBRE_ARCHIVO);
+    const blob = await head(NOMBRE_ARCHIVO, {
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    });
 
-    const respuesta = await fetch(blob.url);
+    const respuesta = await fetch(blob.url, {
+      headers: {
+        Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
+      },
+    });
 
     if (!respuesta.ok) {
       throw new Error(
@@ -101,7 +106,9 @@ if (req.method === "GET") {
       let productos = [];
 
       try {
-        const blob = await head(NOMBRE_ARCHIVO);
+       const blob = await head(NOMBRE_ARCHIVO, {
+  token: process.env.BLOB_READ_WRITE_TOKEN,
+});
         const respuesta = await fetch(blob.url);
         productos = await respuesta.json();
 
