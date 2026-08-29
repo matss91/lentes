@@ -7,6 +7,8 @@ import Login from "./Login";
 import Admin from "./Admin";
 import { linksMercadoPago } from "./mercadoPago";
 import Carrito from "./Carrito";
+
+const API_URL = import.meta.env.VITE_API_URL;
 function App() {
   const [carrito, setCarrito] = useState([]);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
@@ -16,7 +18,13 @@ function App() {
 const [mostrarAdmin, setMostrarAdmin] = useState(false);
 useEffect(() => {
   fetch(`${API_URL}/api/productos`)
-    .then((res) => res.json())
+    .then((res) => {
+      if (!res.ok) {
+        throw new Error("No se pudieron cargar los productos");
+      }
+
+      return res.json();
+    })
     .then((data) => {
       setProductos(data);
     })
