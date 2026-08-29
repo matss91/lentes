@@ -9,7 +9,16 @@ const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN,
 });
 
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "https://lentes-mocha.vercel.app",
+      "https://lentes-git-master-matss91s-projects.vercel.app",
+    ],
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(express.json());
 
 function calcularCostoEnvio({ peso, alto, ancho, largo }) {

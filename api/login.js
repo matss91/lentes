@@ -1,6 +1,28 @@
+
 import crypto from "crypto";
 
 export default function handler(req, res) {
+  // CORS
+  res.setHeader(
+    "Access-Control-Allow-Origin",
+    "https://lentes-git-master-matss91s-projects.vercel.app"
+  );
+
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "POST, OPTIONS"
+  );
+
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type"
+  );
+
+  // Responder al preflight del navegador
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
   if (req.method !== "POST") {
     return res.status(405).json({
       ok: false,
@@ -42,3 +64,4 @@ export default function handler(req, res) {
     token,
   });
 }
+
