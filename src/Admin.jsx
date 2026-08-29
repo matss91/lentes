@@ -37,7 +37,7 @@ function Admin() {
     setMensaje("");
     setCargando(true);
 
-    const token = localStorage.getItem("token");
+   const token = sessionStorage.getItem("adminToken");
 
     if (!token) {
       setMensaje("No hay sesión de administrador.");
