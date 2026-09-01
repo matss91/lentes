@@ -106,11 +106,21 @@ if (req.method === "GET") {
       let productos = [];
 
       try {
-       const blob = await head(NOMBRE_ARCHIVO, {
+const blob = await head(NOMBRE_ARCHIVO, {
   token: process.env.BLOB_READ_WRITE_TOKEN,
 });
-        const respuesta = await fetch(blob.url);
-        productos = await respuesta.json();
+
+const respuesta = await fetch(blob.url, {
+  headers: {
+    Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
+  },
+});
+
+if (!respuesta.ok) {
+  throw new Error(`Error descargando Blob: ${respuesta.status}`);
+}
+
+productos = await respuesta.json();
 
         if (!Array.isArray(productos)) {
           productos = [];
