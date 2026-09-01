@@ -12,6 +12,28 @@ function ProductoDetalle({
     onAgregar(producto);
   }
 
+  function obtenerUrlImagen(imagen) {
+    if (!imagen) {
+      return "";
+    }
+
+    // Si ya es una URL de nuestra API, la usamos directamente
+    if (imagen.includes("/api/imagen?url=")) {
+      return imagen;
+    }
+
+    // Si es una URL de Vercel Blob, la pasamos
+    // por nuestra API para poder acceder al Blob privado
+    if (imagen.includes(".blob.vercel-storage.com")) {
+      return `https://lentes-mocha.vercel.app/api/imagen?url=${encodeURIComponent(
+        imagen
+      )}`;
+    }
+
+    // Para imágenes antiguas/locales
+    return imagen;
+  }
+
   return (
     <section className="productoDetalle">
 
@@ -30,7 +52,9 @@ function ProductoDetalle({
           {/* FOTO PRINCIPAL */}
 
           <img
-            src={producto.imagenes[fotoSeleccionada]}
+            src={obtenerUrlImagen(
+              producto.imagenes[fotoSeleccionada]
+            )}
             alt={producto.nombre}
           />
 
@@ -41,7 +65,7 @@ function ProductoDetalle({
             {producto.imagenes.map((imagen, index) => (
               <button
                 type="button"
-                key={imagen}
+                key={`${imagen}-${index}`}
                 className={
                   fotoSeleccionada === index
                     ? "miniatura activa"
@@ -50,7 +74,7 @@ function ProductoDetalle({
                 onClick={() => setFotoSeleccionada(index)}
               >
                 <img
-                  src={imagen}
+                  src={obtenerUrlImagen(imagen)}
                   alt={`${producto.nombre} ${index + 1}`}
                 />
               </button>
@@ -92,3 +116,4 @@ function ProductoDetalle({
 }
 
 export default ProductoDetalle;
+
