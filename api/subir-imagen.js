@@ -1,6 +1,30 @@
+
+import jwt from "jsonwebtoken";
 import { put } from "@vercel/blob";
 
 export default async function handler(req, res) {
+  // CORS
+  res.setHeader(
+    "Access-Control-Allow-Origin",
+    "https://lentes-mocha.vercel.app"
+  );
+
+  res.setHeader(
+    "Access-Control-Allow-Methods",
+    "POST, OPTIONS"
+  );
+
+  res.setHeader(
+    "Access-Control-Allow-Headers",
+    "Content-Type, Authorization"
+  );
+
+  // Preflight
+  if (req.method === "OPTIONS") {
+    return res.status(200).end();
+  }
+
+  // Solo POST
   if (req.method !== "POST") {
     return res.status(405).json({
       ok: false,
@@ -9,30 +33,43 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Verificar token de administrador
-    const auth = req.headers.authorization;
+    // =========================
+    // VERIFICAR TOKEN
+    // =========================
 
-    if (!auth || !auth.startsWith("Bearer ")) {
+    const authorization = req.headers.authorization;
+
+    if (!authorization || !authorization.startsWith("Bearer ")) {
       return res.status(401).json({
         ok: false,
         mensaje: "No autorizado",
       });
     }
 
-    const token = auth.replace("Bearer ", "");
-
-    // Importante:
-    // Acá usamos el mismo JWT_SECRET que usás en /api/login
-    const jwt = await import("jsonwebtoken");
+    const token = authorization.substring(7);
 
     try {
-      jwt.default.verify(token, process.env.JWT_SECRET);
-    } catch {
+      const datos = jwt.verify(
+        token,
+        process.env.JWT_SECRET
+      );
+
+      if (datos.rol !== "admin") {
+        return res.status(403).json({
+          ok: false,
+          mensaje: "No tenés permisos de administrador",
+        });
+      }
+    } catch (error) {
       return res.status(401).json({
         ok: false,
         mensaje: "Token inválido o vencido",
       });
     }
+
+    // =========================
+    // DATOS DE LA IMAGEN
+    // =========================
 
     const { imagen, nombreArchivo, tipo } = req.body || {};
 
@@ -50,8 +87,10 @@ export default async function handler(req, res) {
       });
     }
 
-    // La imagen llega como:
-    // data:image/jpeg;base64,XXXXX
+    // =========================
+    // CONVERTIR BASE64
+    // =========================
+
     const partes = imagen.split(",");
 
     if (partes.length !== 2) {
@@ -65,27 +104,49 @@ export default async function handler(req, res) {
 
     const buffer = Buffer.from(base64, "base64");
 
-    // Nombre único para evitar que una imagen pise otra
+    // =========================
+    // NOMBRE ÚNICO
+    // =========================
+
     const extension =
-      nombreArchivo.split(".").pop()?.toLowerCase() || "jpg";
+      nombreArchivo.includes(".")
+        ? nombreArchivo.split(".").pop().toLowerCase()
+        : "jpg";
 
-    const nombreUnico = `productos/imagenes/${Date.now()}-${Math.random()
-      .toString(36)
-      .substring(2, 10)}.${extension}`;
+    const nombreUnico =
+      `productos/imagenes/${Date.now()}-${Math.random()
+        .toString(36)
+        .substring(2, 10)}.${extension}`;
 
-    const blob = await put(nombreUnico, buffer, {
-      access: "public",
-      contentType: tipo || "image/jpeg",
-      token: process.env.BLOB_READ_WRITE_TOKEN,
-    });
+    // =========================
+    // SUBIR A VERCEL BLOB
+    // =========================
+
+    const blob = await put(
+      nombreUnico,
+      buffer,
+      {
+        access: "public",
+        contentType: tipo || "image/jpeg",
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+      }
+    );
+
+    // =========================
+    // RESPUESTA
+    // =========================
 
     return res.status(200).json({
       ok: true,
       mensaje: "Imagen subida correctamente",
       url: blob.url,
     });
+
   } catch (error) {
-    console.error("Error subiendo imagen:", error);
+    console.error(
+      "ERROR SUBIENDO IMAGEN:",
+      error
+    );
 
     return res.status(500).json({
       ok: false,
@@ -94,3 +155,4 @@ export default async function handler(req, res) {
     });
   }
 }
+
