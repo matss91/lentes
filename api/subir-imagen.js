@@ -85,7 +85,7 @@ export default async function handler(req, res) {
     const ruta = `imagenes/${Date.now()}-${nombreSeguro}`;
 
     const blob = await put(ruta, buffer, {
-      access: "public",
+      access: "private",
       contentType: tipo,
       token: process.env.BLOB_READ_WRITE_TOKEN,
     });
