@@ -142,16 +142,15 @@ export default async function handler(req, res) {
     // =========================
     // SUBIR IMAGEN
     // =========================
-
-    const blob = await put(
-      nombreUnico,
-      buffer,
-      {
-        access: "public",
-        contentType: tipo || "image/jpeg",
-        token: process.env.BLOB_READ_WRITE_TOKEN,
-      }
-    );
+const blob = await put(
+  nombreUnico,
+  buffer,
+  {
+    access: "private",
+    contentType: tipo || "image/jpeg",
+    token: process.env.BLOB_READ_WRITE_TOKEN,
+  }
+);
 
     return res.status(200).json({
       ok: true,
