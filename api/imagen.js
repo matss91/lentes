@@ -9,16 +9,20 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { nombre } = req.query;
+    const url = req.query.url;
 
-    if (!nombre) {
+    if (!url) {
       return res.status(400).json({
         ok: false,
-        mensaje: "Falta el nombre de la imagen",
+        mensaje: "Falta la URL de la imagen",
       });
     }
 
-    const blob = await head(`imagenes/${nombre}`, {
+    const blobUrl = new URL(url);
+
+    const pathname = blobUrl.pathname.substring(1);
+
+    const blob = await head(pathname, {
       token: process.env.BLOB_READ_WRITE_TOKEN,
     });
 
@@ -29,10 +33,9 @@ export default async function handler(req, res) {
     });
 
     if (!respuesta.ok) {
-      return res.status(404).json({
-        ok: false,
-        mensaje: "Imagen no encontrada",
-      });
+      throw new Error(
+        `Error descargando imagen: ${respuesta.status}`
+      );
     }
 
     const contenido = await respuesta.arrayBuffer();
@@ -42,14 +45,22 @@ export default async function handler(req, res) {
       blob.contentType || "image/jpeg"
     );
 
-    return res.status(200).send(Buffer.from(contenido));
+    res.setHeader(
+      "Cache-Control",
+      "public, max-age=3600"
+    );
+
+    return res.status(200).send(
+      Buffer.from(contenido)
+    );
 
   } catch (error) {
-    console.error("Error obteniendo imagen:", error);
+    console.error("ERROR OBTENIENDO IMAGEN:", error);
 
-    return res.status(404).json({
+    return res.status(500).json({
       ok: false,
       mensaje: "No se pudo obtener la imagen",
+      error: error.message,
     });
   }
 }
