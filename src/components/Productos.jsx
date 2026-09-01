@@ -18,10 +18,17 @@ function Productos({
             key={producto.id}
           >
 
-            <img
-              src={producto.imagenes[0]}
-              alt={producto.nombre}
-            />
+           <img
+  src={
+    producto.imagenes[0]?.startsWith("https://") &&
+    producto.imagenes[0].includes(".private.blob.vercel-storage.com")
+      ? `${import.meta.env.VITE_API_URL}/api/imagen?url=${encodeURIComponent(
+          producto.imagenes[0]
+        )}`
+      : producto.imagenes[0]
+  }
+  alt={producto.nombre}
+/>
 
             <div className="productoInfo">
 
