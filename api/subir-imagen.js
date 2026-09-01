@@ -1,4 +1,4 @@
-
+js
 import jwt from "jsonwebtoken";
 import { put } from "@vercel/blob";
 
@@ -149,10 +149,9 @@ export default async function handler(req, res) {
     );
 
     return res.status(500).json({
-      ok: false,
-      mensaje: "No se pudo subir la imagen",
-      error: error.message,
-    });
+  ok: false,
+  mensaje: error.message || "Error desconocido al subir la imagen",
+});
   }
 }
 
