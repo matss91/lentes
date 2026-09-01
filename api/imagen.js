@@ -1,14 +1,16 @@
 import { head } from "@vercel/blob";
 
 export default async function handler(req, res) {
-  if (req.method !== "GET") {
-    return res.status(405).json({
-      ok: false,
-      mensaje: "Método no permitido",
-    });
-  }
-
   try {
+    // Aceptamos GET y HEAD
+    if (req.method !== "GET" && req.method !== "HEAD") {
+      return res.status(405).json({
+        ok: false,
+        mensaje: "Método no permitido",
+        metodoRecibido: req.method,
+      });
+    }
+
     const url = req.query.url;
 
     if (!url) {
@@ -19,7 +21,6 @@ export default async function handler(req, res) {
     }
 
     const blobUrl = new URL(url);
-
     const pathname = blobUrl.pathname.substring(1);
 
     const blob = await head(pathname, {
@@ -49,6 +50,11 @@ export default async function handler(req, res) {
       "Cache-Control",
       "public, max-age=3600"
     );
+
+    // HEAD no debe devolver el contenido
+    if (req.method === "HEAD") {
+      return res.status(200).end();
+    }
 
     return res.status(200).send(
       Buffer.from(contenido)
