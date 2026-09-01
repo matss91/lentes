@@ -18,7 +18,7 @@ function Productos({
             key={producto.id}
           >
 
-           <img
+<img
   src={
     producto.imagenes[0]?.startsWith("https://") &&
     producto.imagenes[0].includes(".private.blob.vercel-storage.com")
