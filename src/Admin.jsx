@@ -1,5 +1,3 @@
-
-
 import { useState } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL;
@@ -8,20 +6,20 @@ function Admin() {
   const [nombre, setNombre] = useState("");
   const [precio, setPrecio] = useState("");
   const [descripcion, setDescripcion] = useState("");
-  const [imagenes, setImagenes] = useState([""]);
+  const [imagenes, setImagenes] = useState([null]);
 
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(false);
 
-  function cambiarImagen(index, valor) {
+  function cambiarImagen(index, archivo) {
     const nuevasImagenes = [...imagenes];
-    nuevasImagenes[index] = valor;
+    nuevasImagenes[index] = archivo;
     setImagenes(nuevasImagenes);
   }
 
   function agregarCampoImagen() {
     if (imagenes.length < 4) {
-      setImagenes([...imagenes, ""]);
+      setImagenes([...imagenes, null]);
     }
   }
 
@@ -31,13 +29,60 @@ function Admin() {
     }
   }
 
+  async function convertirArchivoABase64(archivo) {
+    return new Promise((resolve, reject) => {
+      const lector = new FileReader();
+
+      lector.onload = () => resolve(lector.result);
+      lector.onerror = () =>
+        reject(new Error("No se pudo leer la imagen."));
+
+      lector.readAsDataURL(archivo);
+    });
+  }
+
+  async function subirImagen(archivo, token) {
+    const base64 = await convertirArchivoABase64(archivo);
+
+    const respuesta = await fetch(`${API_URL}/api/subir-imagen`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        imagen: base64,
+        nombreArchivo: archivo.name,
+        tipo: archivo.type,
+      }),
+    });
+
+    const texto = await respuesta.text();
+
+    let data;
+
+    try {
+      data = JSON.parse(texto);
+    } catch {
+      throw new Error(
+        "El servidor no devolvió una respuesta JSON válida."
+      );
+    }
+
+    if (!respuesta.ok) {
+      throw new Error(data.mensaje || "No se pudo subir la imagen.");
+    }
+
+    return data.url;
+  }
+
   async function agregarProducto(e) {
     e.preventDefault();
 
     setMensaje("");
     setCargando(true);
 
-   const token = sessionStorage.getItem("adminToken");
+    const token = sessionStorage.getItem("adminToken");
 
     if (!token) {
       setMensaje("No hay sesión de administrador.");
@@ -45,18 +90,43 @@ function Admin() {
       return;
     }
 
-    const imagenesFiltradas = imagenes
-      .map((imagen) => imagen.trim())
-      .filter(Boolean);
-
-    const producto = {
-      nombre: nombre.trim(),
-      precio: Number(precio),
-      descripcion: descripcion.trim(),
-      imagenes: imagenesFiltradas,
-    };
-
     try {
+      const archivos = imagenes.filter(Boolean);
+
+      if (archivos.length === 0) {
+        throw new Error("Seleccioná al menos una imagen.");
+      }
+
+      setMensaje("Subiendo imágenes...");
+
+      const urlsImagenes = [];
+
+      for (const archivo of archivos) {
+        if (!archivo.type.startsWith("image/")) {
+          throw new Error(
+            `${archivo.name} no es una imagen válida.`
+          );
+        }
+
+        if (archivo.size > 5 * 1024 * 1024) {
+          throw new Error(
+            `${archivo.name} supera el límite de 5 MB.`
+          );
+        }
+
+        const url = await subirImagen(archivo, token);
+        urlsImagenes.push(url);
+      }
+
+      setMensaje("Guardando producto...");
+
+      const producto = {
+        nombre: nombre.trim(),
+        precio: Number(precio),
+        descripcion: descripcion.trim(),
+        imagenes: urlsImagenes,
+      };
+
       const respuesta = await fetch(`${API_URL}/api/productos`, {
         method: "POST",
         headers: {
@@ -73,11 +143,15 @@ function Admin() {
       try {
         data = JSON.parse(texto);
       } catch {
-        throw new Error("El servidor no devolvió una respuesta JSON válida.");
+        throw new Error(
+          "El servidor no devolvió una respuesta JSON válida."
+        );
       }
 
       if (!respuesta.ok) {
-        throw new Error(data.mensaje || "No se pudo agregar el producto.");
+        throw new Error(
+          data.mensaje || "No se pudo agregar el producto."
+        );
       }
 
       setMensaje("Producto agregado correctamente.");
@@ -85,7 +159,8 @@ function Admin() {
       setNombre("");
       setPrecio("");
       setDescripcion("");
-      setImagenes([""]);
+      setImagenes([null]);
+
     } catch (error) {
       console.error("Error agregando producto:", error);
       setMensaje(error.message);
@@ -151,14 +226,19 @@ function Admin() {
           {imagenes.map((imagen, index) => (
             <div key={index} style={{ marginTop: "10px" }}>
               <input
-                type="text"
-                value={imagen}
+                type="file"
+                accept="image/*"
                 onChange={(e) =>
-                  cambiarImagen(index, e.target.value)
+                  cambiarImagen(index, e.target.files[0] || null)
                 }
-                placeholder={`/anteojos/${index + 1}.jpg`}
                 required={index === 0}
               />
+
+              {imagen && (
+                <span style={{ marginLeft: "10px" }}>
+                  {imagen.name}
+                </span>
+              )}
 
               {imagenes.length > 1 && (
                 <button
@@ -196,4 +276,3 @@ function Admin() {
 }
 
 export default Admin;
-
