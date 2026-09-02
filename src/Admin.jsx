@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
@@ -7,9 +7,29 @@ function Admin() {
   const [precio, setPrecio] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [imagenes, setImagenes] = useState([null]);
-
+const [productos, setProductos] = useState([]);
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(false);
+
+useEffect(() => {
+  cargarProductos();
+}, []);
+
+async function cargarProductos() {
+  try {
+    const respuesta = await fetch(`${API_URL}/api/productos`);
+
+    const data = await respuesta.json();
+
+    if (!respuesta.ok) {
+      throw new Error(data.mensaje || "No se pudieron cargar los productos.");
+    }
+
+    setProductos(data.productos || []);
+  } catch (error) {
+    console.error("Error cargando productos:", error);
+  }
+}
 
   function cambiarImagen(index, archivo) {
     const nuevasImagenes = [...imagenes];
@@ -157,6 +177,13 @@ function Admin() {
       setMensaje("Producto agregado correctamente.");
 
       setNombre("");
+
+      setMensaje("Producto agregado correctamente.");
+
+await cargarProductos();
+
+setNombre("");
+
       setPrecio("");
       setDescripcion("");
       setImagenes([null]);
@@ -271,6 +298,44 @@ function Admin() {
       </form>
 
       {mensaje && <p>{mensaje}</p>}
+
+      <h2>Productos existentes</h2>
+
+{productos.length === 0 ? (
+  <p>No hay productos cargados.</p>
+) : (
+  productos.map((producto) => (
+    <div
+      key={producto.id}
+      style={{
+        border: "1px solid #ccc",
+        padding: "15px",
+        marginBottom: "15px",
+      }}
+    >
+      <h3>{producto.nombre}</h3>
+
+      <p>Precio: ${producto.precio}</p>
+
+      <p>{producto.descripcion}</p>
+
+      <p>
+        Imágenes: {producto.imagenes?.length || 0}
+      </p>
+
+      <button type="button">
+        Editar
+      </button>
+
+      <button
+        type="button"
+        style={{ marginLeft: "10px" }}
+      >
+        Eliminar
+      </button>
+    </div>
+  ))
+)}
     </div>
   );
 }
