@@ -24,8 +24,7 @@ async function cargarProductos() {
     if (!respuesta.ok) {
       throw new Error(data.mensaje || "No se pudieron cargar los productos.");
     }
-
-    setProductos(data.productos || []);
+setProductos(Array.isArray(data) ? data : []);
   } catch (error) {
     console.error("Error cargando productos:", error);
   }
