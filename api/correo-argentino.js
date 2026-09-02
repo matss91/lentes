@@ -15,7 +15,7 @@ app.use(
       "https://lentes-mocha.vercel.app",
       "https://lentes-git-master-matss91s-projects.vercel.app",
     ],
-    methods: ["GET", "POST", "OPTIONS"],
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );

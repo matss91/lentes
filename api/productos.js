@@ -28,7 +28,7 @@ export default async function handler(req, res) {
 
   res.setHeader(
     "Access-Control-Allow-Methods",
-    "GET, POST, OPTIONS"
+    "GET, POST, PUT, DELETE, OPTIONS"
   );
 
   res.setHeader(
@@ -172,7 +172,82 @@ productos = await respuesta.json();
       });
     }
   }
+// PUT: editar producto
+if (req.method === "PUT") {
+  const usuario = verificarToken(req);
 
+  if (!usuario || usuario.rol !== "admin") {
+    return res.status(401).json({
+      ok: false,
+      mensaje: "No autorizado"
+    });
+  }
+
+  try {
+    const { id, nombre, precio, descripcion, imagenes } = req.body;
+
+    if (!id) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "Falta el ID del producto"
+      });
+    }
+
+    const response = await head(NOMBRE_ARCHIVO, {
+      token: process.env.BLOB_READ_WRITE_TOKEN
+    });
+
+    const descarga = await fetch(response.url, {
+      headers: {
+        Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`
+      }
+    });
+
+    const productos = await descarga.json();
+
+    const indice = productos.findIndex(
+      (producto) => Number(producto.id) === Number(id)
+    );
+
+    if (indice === -1) {
+      return res.status(404).json({
+        ok: false,
+        mensaje: "Producto no encontrado"
+      });
+    }
+
+    productos[indice] = {
+      ...productos[indice],
+      nombre,
+      precio: Number(precio),
+      descripcion,
+      imagenes: imagenes || productos[indice].imagenes
+    };
+
+    await put(
+      NOMBRE_ARCHIVO,
+      JSON.stringify(productos, null, 2),
+      {
+        access: "private",
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+        allowOverwrite: true
+      }
+    );
+
+    return res.status(200).json({
+      ok: true,
+      mensaje: "Producto actualizado correctamente",
+      producto: productos[indice]
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error actualizando producto",
+      error: error.message
+    });
+  }
+}
   return res.status(405).json({
     ok: false,
     mensaje: "Método no permitido",
