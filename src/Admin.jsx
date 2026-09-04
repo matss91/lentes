@@ -194,10 +194,7 @@ console.log("RESPUESTA POST:", respuesta.status);
 
       setMensaje("Producto agregado correctamente.");
 
-setProductos((productosActuales) => [
-  ...productosActuales,
-  data.producto,
-]);
+await cargarProductos();
 
 setNombre("");
 setPrecio("");
