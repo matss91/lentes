@@ -253,10 +253,13 @@ const respuesta = await fetch(`${API_URL}/api/productos`, {
     }
 
 
-
 setMensaje("Producto eliminado correctamente.");
 
-await cargarProductos();
+setProductos((productosActuales) =>
+  productosActuales.filter(
+    (producto) => Number(producto.id) !== Number(id)
+  )
+);
 
   } catch (error) {
     console.error("Error eliminando producto:", error);
