@@ -262,7 +262,7 @@ if (req.method === "DELETE") {
 
   try {
     const { id } = req.body;
-
+console.log("ID RECIBIDO PARA ELIMINAR:", id);
     if (!id) {
       return res.status(400).json({
         ok: false,
@@ -287,7 +287,10 @@ if (req.method === "DELETE") {
     }
 
     const productos = await respuesta.json();
-
+console.log(
+  "IDS DE PRODUCTOS:",
+  productos.map((producto) => producto.id)
+);
     const indice = productos.findIndex(
       (producto) => Number(producto.id) === Number(id)
     );
