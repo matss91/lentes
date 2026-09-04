@@ -72,6 +72,9 @@ async function cargarProductos() {
   async function subirImagen(archivo, token) {
     const base64 = await convertirArchivoABase64(archivo);
 
+console.log("ENVIANDO PRODUCTO:", producto);
+
+
     const respuesta = await fetch(`${API_URL}/api/subir-imagen`, {
       method: "POST",
       headers: {
@@ -84,7 +87,7 @@ async function cargarProductos() {
         tipo: archivo.type,
       }),
     });
-
+console.log("RESPUESTA POST:", respuesta.status);
     const texto = await respuesta.text();
 
     let data;
@@ -184,17 +187,14 @@ async function cargarProductos() {
 
       setMensaje("Producto agregado correctamente.");
 
-      setNombre("");
-
-      setMensaje("Producto agregado correctamente.");
+ 
 
 await cargarProductos();
 
 setNombre("");
-
-      setPrecio("");
-      setDescripcion("");
-      setImagenes([null]);
+setPrecio("");
+setDescripcion("");
+setImagenes([null]);
 
     } catch (error) {
       console.error("Error agregando producto:", error);
