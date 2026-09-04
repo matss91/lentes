@@ -291,6 +291,9 @@ console.log(
   "IDS DE PRODUCTOS:",
   productos.map((producto) => producto.id)
 );
+
+console.log("PRODUCTOS ANTES DE ELIMINAR:", productos);
+
     const indice = productos.findIndex(
       (producto) => Number(producto.id) === Number(id)
     );
@@ -305,6 +308,8 @@ console.log(
     const productoEliminado = productos[indice];
 
     productos.splice(indice, 1);
+
+console.log("PRODUCTOS DESPUÉS DE ELIMINAR:", productos);
 
     await put(
       NOMBRE_ARCHIVO,
