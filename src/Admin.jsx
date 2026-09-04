@@ -17,7 +17,9 @@ useEffect(() => {
 
 async function cargarProductos() {
   try {
-    const respuesta = await fetch(`${API_URL}/api/productos`);
+    const respuesta = await fetch(`${API_URL}/api/productos`, {
+      cache: "no-store",
+    });
 
     const data = await respuesta.json();
 
@@ -31,8 +33,9 @@ async function cargarProductos() {
 
     setProductos(listaProductos);
 
-    return listaProductos;
+    console.log("PRODUCTOS CARGADOS:", listaProductos);
 
+    return listaProductos;
   } catch (error) {
     console.error("Error cargando productos:", error);
     return [];
@@ -191,9 +194,10 @@ console.log("RESPUESTA POST:", respuesta.status);
 
       setMensaje("Producto agregado correctamente.");
 
- 
-
-await cargarProductos();
+setProductos((productosActuales) => [
+  ...productosActuales,
+  data.producto,
+]);
 
 setNombre("");
 setPrecio("");
@@ -251,11 +255,7 @@ const respuesta = await fetch(`${API_URL}/api/productos`, {
       );
     }
 
-   if (!respuesta.ok) {
-  throw new Error(
-    data.mensaje || "No se pudo eliminar el producto."
-  );
-}
+
 
 setMensaje("Producto eliminado correctamente.");
 
