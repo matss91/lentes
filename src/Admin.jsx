@@ -22,11 +22,20 @@ async function cargarProductos() {
     const data = await respuesta.json();
 
     if (!respuesta.ok) {
-      throw new Error(data.mensaje || "No se pudieron cargar los productos.");
+      throw new Error(
+        data.mensaje || "No se pudieron cargar los productos."
+      );
     }
-setProductos(Array.isArray(data) ? data : []);
+
+    const listaProductos = Array.isArray(data) ? data : [];
+
+    setProductos(listaProductos);
+
+    return listaProductos;
+
   } catch (error) {
     console.error("Error cargando productos:", error);
+    return [];
   }
 }
 
@@ -238,9 +247,13 @@ const respuesta = await fetch(`${API_URL}/api/productos`, {
       );
     }
 
-    setMensaje("Producto eliminado correctamente.");
+   setProductos((productosActuales) =>
+  productosActuales.filter(
+    (producto) => Number(producto.id) !== Number(id)
+  )
+);
 
-    await cargarProductos();
+setMensaje("Producto eliminado correctamente.");
 
   } catch (error) {
     console.error("Error eliminando producto:", error);
