@@ -235,6 +235,7 @@ function Admin() {
     setMensaje("Eliminando producto...");
 
     try {
+      console.log("VOY A HACER DELETE DEL ID:", id);
       const respuesta = await fetch(`${API_URL}/api/productos`, {
         method: "DELETE",
         headers: {
