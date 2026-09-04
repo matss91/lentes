@@ -72,9 +72,9 @@ async function cargarProductos() {
   async function subirImagen(archivo, token) {
     const base64 = await convertirArchivoABase64(archivo);
 
-console.log("ENVIANDO PRODUCTO:", producto);
 
 
+    
     const respuesta = await fetch(`${API_URL}/api/subir-imagen`, {
       method: "POST",
       headers: {
@@ -87,7 +87,7 @@ console.log("ENVIANDO PRODUCTO:", producto);
         tipo: archivo.type,
       }),
     });
-console.log("RESPUESTA POST:", respuesta.status);
+
     const texto = await respuesta.text();
 
     let data;
@@ -151,21 +151,25 @@ console.log("RESPUESTA POST:", respuesta.status);
 
       setMensaje("Guardando producto...");
 
-      const producto = {
-        nombre: nombre.trim(),
-        precio: Number(precio),
-        descripcion: descripcion.trim(),
-        imagenes: urlsImagenes,
-      };
+    const producto = {
+  nombre: nombre.trim(),
+  precio: Number(precio),
+  descripcion: descripcion.trim(),
+  imagenes: urlsImagenes,
+};
 
-      const respuesta = await fetch(`${API_URL}/api/productos`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(producto),
-      });
+console.log("POST AGREGAR PRODUCTO");
+
+const respuesta = await fetch(`${API_URL}/api/productos`, {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  },
+  body: JSON.stringify(producto),
+});
+
+console.log("RESPUESTA POST:", respuesta.status);
 
       const texto = await respuesta.text();
 
