@@ -348,7 +348,9 @@ function Admin() {
     if (!confirmar) {
       return;
     }
+if (cargando) return;
 
+setCargando(true);
     try {
       setMensaje("Eliminando producto...");
 
@@ -387,7 +389,9 @@ function Admin() {
         throw new Error(
           "El servidor no devolvió JSON válido."
         );
-      }
+      }finally {
+    setCargando(false);
+  }
 
       if (!respuesta.ok) {
         throw new Error(
@@ -622,20 +626,13 @@ function Admin() {
                 Editar
               </button>
 
-              <button
-                type="button"
-                onClick={() =>
-                  eliminarProducto(
-                    producto.id
-                  )
-                }
-                style={{
-                  marginLeft:
-                    "10px",
-                }}
-              >
-                Eliminar
-              </button>
+       <button
+  type="button"
+  onClick={() => eliminarProducto(producto.id)}
+  disabled={cargando}
+>
+  {cargando ? "Procesando..." : "Eliminar"}
+</button>
             </div>
           )
         )
