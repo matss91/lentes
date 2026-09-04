@@ -20,6 +20,7 @@ function verificarToken(req) {
 }
 
 export default async function handler(req, res) {
+console.log("MÉTODO RECIBIDO:", req.method);
   // CORS
   res.setHeader(
     "Access-Control-Allow-Origin",
