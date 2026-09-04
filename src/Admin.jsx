@@ -15,18 +15,168 @@ function Admin() {
     cargarProductos();
   }, []);
 
-  // =========================
-  // CARGAR PRODUCTOS
-  // =========================
-
   async function cargarProductos() {
     try {
-      console.log("CARGANDO PRODUCTOS...");
-
       const respuesta = await fetch(`${API_URL}/api/productos`, {
-        method: "GET",
         cache: "no-store",
       });
+
+      const data = await respuesta.json();
+
+      if (!respuesta.ok) {
+        throw new Error(
+          data.mensaje || "No se pudieron cargar los productos."
+        );
+      }
+
+      const listaProductos = Array.isArray(data) ? data : [];
+
+      setProductos(listaProductos);
+
+      console.log("PRODUCTOS CARGADOS:", listaProductos);
+
+      return listaProductos;
+    } catch (error) {
+      console.error("Error cargando productos:", error);
+      return [];
+    }
+  }
+
+  function cambiarImagen(index, archivo) {
+    if (cargando) return;
+
+    const nuevasImagenes = [...imagenes];
+    nuevasImagenes[index] = archivo;
+    setImagenes(nuevasImagenes);
+  }
+
+  function agregarCampoImagen() {
+    if (cargando) return;
+
+    if (imagenes.length < 4) {
+      setImagenes([...imagenes, null]);
+    }
+  }
+
+  function eliminarCampoImagen(index) {
+    if (cargando) return;
+
+    if (imagenes.length > 1) {
+      setImagenes(imagenes.filter((_, i) => i !== index));
+    }
+  }
+
+  async function convertirArchivoABase64(archivo) {
+    return new Promise((resolve, reject) => {
+      const lector = new FileReader();
+
+      lector.onload = () => resolve(lector.result);
+
+      lector.onerror = () =>
+        reject(new Error("No se pudo leer la imagen."));
+
+      lector.readAsDataURL(archivo);
+    });
+  }
+
+  async function subirImagen(archivo, token) {
+    const base64 = await convertirArchivoABase64(archivo);
+
+    const respuesta = await fetch(`${API_URL}/api/subir-imagen`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        imagen: base64,
+        nombreArchivo: archivo.name,
+        tipo: archivo.type,
+      }),
+    });
+
+    const texto = await respuesta.text();
+
+    let data;
+
+    try {
+      data = JSON.parse(texto);
+    } catch {
+      throw new Error(
+        "El servidor no devolvió una respuesta JSON válida."
+      );
+    }
+
+    if (!respuesta.ok) {
+      throw new Error(data.mensaje || "No se pudo subir la imagen.");
+    }
+
+    return data.url;
+  }
+
+  async function agregarProducto(e) {
+    e.preventDefault();
+
+    // Evita que se pueda iniciar otra operación
+    if (cargando) return;
+
+    setCargando(true);
+    setMensaje("");
+
+    const token = sessionStorage.getItem("adminToken");
+
+    if (!token) {
+      setMensaje("No hay sesión de administrador.");
+      setCargando(false);
+      return;
+    }
+
+    try {
+      const archivos = imagenes.filter(Boolean);
+
+      if (archivos.length === 0) {
+        throw new Error("Seleccioná al menos una imagen.");
+      }
+
+      setMensaje("Subiendo imágenes...");
+
+      const urlsImagenes = [];
+
+      for (const archivo of archivos) {
+        if (!archivo.type.startsWith("image/")) {
+          throw new Error(`${archivo.name} no es una imagen válida.`);
+        }
+
+        if (archivo.size > 5 * 1024 * 1024) {
+          throw new Error(`${archivo.name} supera el límite de 5 MB.`);
+        }
+
+        const url = await subirImagen(archivo, token);
+
+        urlsImagenes.push(url);
+      }
+
+      setMensaje("Guardando producto...");
+
+      const producto = {
+        nombre: nombre.trim(),
+        precio: Number(precio),
+        descripcion: descripcion.trim(),
+        imagenes: urlsImagenes,
+      };
+
+      console.log("POST AGREGAR PRODUCTO");
+
+      const respuesta = await fetch(`${API_URL}/api/productos`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(producto),
+      });
+
+      console.log("RESPUESTA POST:", respuesta.status);
 
       const texto = await respuesta.text();
 
@@ -42,344 +192,59 @@ function Admin() {
 
       if (!respuesta.ok) {
         throw new Error(
-          data.mensaje || "No se pudieron cargar los productos."
+          data.mensaje || "No se pudo agregar el producto."
         );
       }
 
-      const listaProductos = Array.isArray(data) ? data : [];
+      setMensaje("Producto agregado correctamente.");
 
-      console.log("PRODUCTOS CARGADOS:", listaProductos);
-
-      setProductos(listaProductos);
-
-      return listaProductos;
-    } catch (error) {
-      console.error("ERROR CARGANDO PRODUCTOS:", error);
-      setMensaje(error.message);
-
-      return [];
-    }
-  }
-
-  // =========================
-  // IMÁGENES
-  // =========================
-
-  function cambiarImagen(index, archivo) {
-    const nuevasImagenes = [...imagenes];
-
-    nuevasImagenes[index] = archivo;
-
-    setImagenes(nuevasImagenes);
-  }
-
-  function agregarCampoImagen() {
-    if (imagenes.length < 4) {
-      setImagenes([...imagenes, null]);
-    }
-  }
-
-  function eliminarCampoImagen(index) {
-    if (imagenes.length > 1) {
-      setImagenes(
-        imagenes.filter((_, i) => i !== index)
-      );
-    }
-  }
-
-  // =========================
-  // CONVERTIR IMAGEN A BASE64
-  // =========================
-
-  async function convertirArchivoABase64(archivo) {
-    return new Promise((resolve, reject) => {
-      const lector = new FileReader();
-
-      lector.onload = () => {
-        resolve(lector.result);
-      };
-
-      lector.onerror = () => {
-        reject(
-          new Error("No se pudo leer la imagen.")
-        );
-      };
-
-      lector.readAsDataURL(archivo);
-    });
-  }
-
-  // =========================
-  // SUBIR IMAGEN
-  // =========================
-
-  async function subirImagen(archivo, token) {
-    const base64 =
-      await convertirArchivoABase64(archivo);
-
-    const respuesta = await fetch(
-      `${API_URL}/api/subir-imagen`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          imagen: base64,
-          nombreArchivo: archivo.name,
-          tipo: archivo.type,
-        }),
-      }
-    );
-
-    const texto = await respuesta.text();
-
-    let data;
-
-    try {
-      data = JSON.parse(texto);
-    } catch {
-      throw new Error(
-        "El servidor no devolvió una respuesta JSON válida."
-      );
-    }
-
-    if (!respuesta.ok) {
-      throw new Error(
-        data.mensaje ||
-          "No se pudo subir la imagen."
-      );
-    }
-
-    if (!data.url) {
-      throw new Error(
-        "El servidor no devolvió la URL de la imagen."
-      );
-    }
-
-    return data.url;
-  }
-
-  // =========================
-  // AGREGAR PRODUCTO
-  // =========================
-
-  async function agregarProducto(e) {
-    e.preventDefault();
-
-    setMensaje("");
-    setCargando(true);
-
-    const token =
-      sessionStorage.getItem("adminToken");
-
-    if (!token) {
-      setMensaje(
-        "No hay sesión de administrador."
-      );
-
-      setCargando(false);
-      return;
-    }
-
-    try {
-      const archivos =
-        imagenes.filter(Boolean);
-
-      if (archivos.length === 0) {
-        throw new Error(
-          "Seleccioná al menos una imagen."
-        );
-      }
-
-      if (!nombre.trim()) {
-        throw new Error(
-          "Ingresá el nombre del producto."
-        );
-      }
-
-      if (!precio || Number(precio) < 0) {
-        throw new Error(
-          "Ingresá un precio válido."
-        );
-      }
-
-      if (!descripcion.trim()) {
-        throw new Error(
-          "Ingresá una descripción."
-        );
-      }
-
-      setMensaje("Subiendo imágenes...");
-
-      const urlsImagenes = [];
-
-      for (const archivo of archivos) {
-        if (
-          !archivo.type.startsWith("image/")
-        ) {
-          throw new Error(
-            `${archivo.name} no es una imagen válida.`
-          );
-        }
-
-        if (
-          archivo.size >
-          5 * 1024 * 1024
-        ) {
-          throw new Error(
-            `${archivo.name} supera el límite de 5 MB.`
-          );
-        }
-
-        const url =
-          await subirImagen(
-            archivo,
-            token
-          );
-
-        urlsImagenes.push(url);
-      }
-
-      setMensaje("Guardando producto...");
-
-      const producto = {
-        nombre: nombre.trim(),
-        precio: Number(precio),
-        descripcion: descripcion.trim(),
-        imagenes: urlsImagenes,
-      };
-
-      console.log(
-        "PRODUCTO A ENVIAR:",
-        producto
-      );
-
-      const respuesta = await fetch(
-        `${API_URL}/api/productos`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify(producto),
-        }
-      );
-
-      console.log(
-        "RESPUESTA POST:",
-        respuesta.status
-      );
-
-      const texto =
-        await respuesta.text();
-
-      let data;
-
-      try {
-        data = JSON.parse(texto);
-      } catch {
-        throw new Error(
-          "El servidor no devolvió una respuesta JSON válida."
-        );
-      }
-
-      if (!respuesta.ok) {
-        throw new Error(
-          data.mensaje ||
-            "No se pudo agregar el producto."
-        );
-      }
-
-      console.log(
-        "PRODUCTO AGREGADO:",
-        data.producto
-      );
-
-      setMensaje(
-        "Producto agregado correctamente."
-      );
-
-      // Volvemos a leer Blob
+      // Esperamos a que termine de cargar la lista
       await cargarProductos();
 
-      // Limpiar formulario
       setNombre("");
       setPrecio("");
       setDescripcion("");
       setImagenes([null]);
     } catch (error) {
-      console.error(
-        "ERROR AGREGANDO PRODUCTO:",
-        error
-      );
-
-      setMensaje(
-        error.message ||
-          "Error agregando producto."
-      );
+      console.error("Error agregando producto:", error);
+      setMensaje(error.message);
     } finally {
+      // Recién acá se permite otra operación
       setCargando(false);
     }
   }
 
-  // =========================
-  // ELIMINAR PRODUCTO
-  // =========================
-
   async function eliminarProducto(id) {
-    const token =
-      sessionStorage.getItem("adminToken");
+    // Evita doble click o iniciar otra operación
+    if (cargando) return;
+
+    const token = sessionStorage.getItem("adminToken");
 
     if (!token) {
-      setMensaje(
-        "No hay sesión de administrador."
-      );
+      setMensaje("No hay sesión de administrador.");
       return;
     }
 
-    const confirmar =
-      window.confirm(
-        "¿Seguro que querés eliminar este producto?"
-      );
+    const confirmar = window.confirm(
+      "¿Seguro que querés eliminar este producto?"
+    );
 
-    if (!confirmar) {
-      return;
-    }
-if (cargando) return;
+    if (!confirmar) return;
 
-setCargando(true);
+    setCargando(true);
+    setMensaje("Eliminando producto...");
+
     try {
-      setMensaje("Eliminando producto...");
+      const respuesta = await fetch(`${API_URL}/api/productos`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ id }),
+      });
 
-      console.log(
-        "ELIMINANDO ID:",
-        id
-      );
-
-      const respuesta = await fetch(
-        `${API_URL}/api/productos`,
-        {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            id,
-          }),
-        }
-      );
-
-      console.log(
-        "RESPUESTA DELETE:",
-        respuesta.status
-      );
-
-      const texto =
-        await respuesta.text();
+      const texto = await respuesta.text();
 
       let data;
 
@@ -389,54 +254,33 @@ setCargando(true);
         throw new Error(
           "El servidor no devolvió JSON válido."
         );
-      }finally {
-    setCargando(false);
-  }
+      }
 
       if (!respuesta.ok) {
         throw new Error(
-          data.mensaje ||
-            "No se pudo eliminar el producto."
+          data.mensaje || "No se pudo eliminar el producto."
         );
       }
 
-      console.log(
-        "PRODUCTO ELIMINADO:",
-        data.producto
-      );
+      setMensaje("Producto eliminado correctamente.");
 
-      setMensaje(
-        "Producto eliminado correctamente."
-      );
-
-      // IMPORTANTE:
-      // volvemos a leer los productos reales
-      // desde Blob
+      // Esperamos a que termine de actualizar la lista
       await cargarProductos();
-    } catch (error) {
-      console.error(
-        "ERROR ELIMINANDO PRODUCTO:",
-        error
-      );
 
-      setMensaje(
-        error.message ||
-          "Error eliminando producto."
-      );
+    } catch (error) {
+      console.error("Error eliminando producto:", error);
+      setMensaje(error.message);
+    } finally {
+      // Recién ahora se permite otra operación
+      setCargando(false);
     }
   }
-
-  // =========================
-  // RENDER
-  // =========================
 
   return (
     <div>
       <h1>Panel de administrador</h1>
 
-      <p>
-        Login correcto. Estás dentro del panel.
-      </p>
+      <p>Login correcto. Estás dentro del panel.</p>
 
       <h2>Agregar anteojo</h2>
 
@@ -448,11 +292,10 @@ setCargando(true);
           <input
             type="text"
             value={nombre}
-            onChange={(e) =>
-              setNombre(e.target.value)
-            }
+            onChange={(e) => setNombre(e.target.value)}
             placeholder="Ej: Ray-Ban"
             required
+            disabled={cargando}
           />
         </div>
 
@@ -465,12 +308,11 @@ setCargando(true);
           <input
             type="number"
             value={precio}
-            onChange={(e) =>
-              setPrecio(e.target.value)
-            }
+            onChange={(e) => setPrecio(e.target.value)}
             placeholder="120000"
             min="0"
             required
+            disabled={cargando}
           />
         </div>
 
@@ -482,11 +324,10 @@ setCargando(true);
 
           <textarea
             value={descripcion}
-            onChange={(e) =>
-              setDescripcion(e.target.value)
-            }
+            onChange={(e) => setDescripcion(e.target.value)}
             placeholder="Descripción del anteojo"
             required
+            disabled={cargando}
           />
         </div>
 
@@ -495,69 +336,51 @@ setCargando(true);
         <div>
           <label>Imágenes</label>
 
-          {imagenes.map(
-            (imagen, index) => (
-              <div
-                key={index}
-                style={{
-                  marginTop: "10px",
-                }}
-              >
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) =>
-                    cambiarImagen(
-                      index,
-                      e.target.files[0] ||
-                        null
-                    )
-                  }
-                  required={
-                    index === 0
-                  }
-                />
+          {imagenes.map((imagen, index) => (
+            <div
+              key={index}
+              style={{ marginTop: "10px" }}
+            >
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  cambiarImagen(
+                    index,
+                    e.target.files[0] || null
+                  )
+                }
+                required={index === 0}
+                disabled={cargando}
+              />
 
-                {imagen && (
-                  <span
-                    style={{
-                      marginLeft:
-                        "10px",
-                    }}
-                  >
-                    {imagen.name}
-                  </span>
-                )}
+              {imagen && (
+                <span style={{ marginLeft: "10px" }}>
+                  {imagen.name}
+                </span>
+              )}
 
-                {imagenes.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      eliminarCampoImagen(
-                        index
-                      )
-                    }
-                    style={{
-                      marginLeft:
-                        "5px",
-                    }}
-                  >
-                    Eliminar
-                  </button>
-                )}
-              </div>
-            )
-          )}
+              {imagenes.length > 1 && (
+                <button
+                  type="button"
+                  onClick={() =>
+                    eliminarCampoImagen(index)
+                  }
+                  disabled={cargando}
+                  style={{ marginLeft: "5px" }}
+                >
+                  Eliminar
+                </button>
+              )}
+            </div>
+          ))}
 
           {imagenes.length < 4 && (
             <button
               type="button"
-              onClick={
-                agregarCampoImagen
-              }
-              style={{
-                marginTop: "10px",
-              }}
+              onClick={agregarCampoImagen}
+              disabled={cargando}
+              style={{ marginTop: "10px" }}
             >
               + Agregar otra imagen
             </button>
@@ -571,71 +394,58 @@ setCargando(true);
           disabled={cargando}
         >
           {cargando
-            ? "Guardando..."
+            ? "Procesando..."
             : "Agregar anteojo"}
         </button>
       </form>
 
-      {mensaje && (
-        <p>{mensaje}</p>
-      )}
+      {mensaje && <p>{mensaje}</p>}
 
-      <h2>
-        Productos existentes
-      </h2>
+      <h2>Productos existentes</h2>
 
       {productos.length === 0 ? (
-        <p>
-          No hay productos cargados.
-        </p>
+        <p>No hay productos cargados.</p>
       ) : (
-        productos.map(
-          (producto) => (
-            <div
-              key={producto.id}
-              style={{
-                border:
-                  "1px solid #ccc",
-                padding: "15px",
-                marginBottom:
-                  "15px",
-              }}
+        productos.map((producto) => (
+          <div
+            key={producto.id}
+            style={{
+              border: "1px solid #ccc",
+              padding: "15px",
+              marginBottom: "15px",
+            }}
+          >
+            <h3>{producto.nombre}</h3>
+
+            <p>Precio: ${producto.precio}</p>
+
+            <p>{producto.descripcion}</p>
+
+            <p>
+              Imágenes: {producto.imagenes?.length || 0}
+            </p>
+
+            <button
+              type="button"
+              disabled={cargando}
             >
-              <h3>
-                {producto.nombre}
-              </h3>
+              Editar
+            </button>
 
-              <p>
-                Precio: $
-                {producto.precio}
-              </p>
-
-              <p>
-                {producto.descripcion}
-              </p>
-
-              <p>
-                Imágenes:{" "}
-                {producto.imagenes
-                  ?.length || 0}
-              </p>
-
-              <button
-                type="button"
-              >
-                Editar
-              </button>
-
-       <button
-  type="button"
-  onClick={() => eliminarProducto(producto.id)}
-  disabled={cargando}
->
-  {cargando ? "Procesando..." : "Eliminar"}
-</button>
-            </div>
-          )
-        )
+            <button
+              type="button"
+              onClick={() =>
+                eliminarProducto(producto.id)
+              }
+              disabled={cargando}
+              style={{ marginLeft: "10px" }}
+            >
+              {cargando
+                ? "Procesando..."
+                : "Eliminar"}
+            </button>
+          </div>
+        ))
       )}
     </div>
   );
