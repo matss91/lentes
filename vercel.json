@@ -1,3 +1,21 @@
 {
-  "version": 2
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/products",
+      "destination": "/api/productos.js"
+    },
+    {
+      "source": "/api/cotizar-envio",
+      "destination": "/api/correo-argentino.js"
+    },
+    {
+      "source": "/api/crear-preferencia",
+      "destination": "/api/correo-argentino.js"
+    },
+    {
+      "source": "/api/estado",
+      "destination": "/api/correo-argentino.js"
+    }
+  ]
 }
