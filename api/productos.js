@@ -261,7 +261,7 @@ if (req.method === "DELETE") {
   }
 
   try {
-    const { id } = req.query;
+    const { id } = req.body;
 
     if (!id) {
       return res.status(400).json({

@@ -213,12 +213,14 @@ async function eliminarProducto(id) {
   if (!confirmar) return;
 
   try {
-    const respuesta = await fetch(`${API_URL}/api/productos/${id}`, {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
+const respuesta = await fetch(`${API_URL}/api/productos`, {
+  method: "DELETE",
+  headers: {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  },
+  body: JSON.stringify({ id }),
+});
 
     const texto = await respuesta.text();
 
