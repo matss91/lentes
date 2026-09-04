@@ -248,6 +248,90 @@ if (req.method === "PUT") {
     });
   }
 }
+//eliminar 
+// DELETE: eliminar producto
+if (req.method === "DELETE") {
+  const usuario = verificarToken(req);
+
+  if (!usuario || usuario.rol !== "admin") {
+    return res.status(401).json({
+      ok: false,
+      mensaje: "No autorizado",
+    });
+  }
+
+  try {
+    const { id } = req.query;
+
+    if (!id) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "Falta el ID del producto",
+      });
+    }
+
+    const blob = await head(NOMBRE_ARCHIVO, {
+      token: process.env.BLOB_READ_WRITE_TOKEN,
+    });
+
+    const respuesta = await fetch(blob.url, {
+      headers: {
+        Authorization: `Bearer ${process.env.BLOB_READ_WRITE_TOKEN}`,
+      },
+    });
+
+    if (!respuesta.ok) {
+      throw new Error(
+        `Error descargando Blob: ${respuesta.status}`
+      );
+    }
+
+    const productos = await respuesta.json();
+
+    const indice = productos.findIndex(
+      (producto) => Number(producto.id) === Number(id)
+    );
+
+    if (indice === -1) {
+      return res.status(404).json({
+        ok: false,
+        mensaje: "Producto no encontrado",
+      });
+    }
+
+    const productoEliminado = productos[indice];
+
+    productos.splice(indice, 1);
+
+    await put(
+      NOMBRE_ARCHIVO,
+      JSON.stringify(productos, null, 2),
+      {
+        access: "private",
+        token: process.env.BLOB_READ_WRITE_TOKEN,
+        allowOverwrite: true,
+      }
+    );
+
+    return res.status(200).json({
+      ok: true,
+      mensaje: "Producto eliminado correctamente",
+      producto: productoEliminado,
+    });
+
+  } catch (error) {
+    console.error("Error eliminando producto:", error);
+
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error eliminando producto",
+      error: error.message,
+    });
+  }
+}
+///
+
+
   return res.status(405).json({
     ok: false,
     mensaje: "Método no permitido",
