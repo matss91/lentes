@@ -275,7 +275,7 @@ function Admin() {
       setCargando(false);
     }
   }
-
+console.log("PRODUCTOS QUE VA A MOSTRAR:", productos);
   return (
     <div>
       <h1>Panel de administrador</h1>
