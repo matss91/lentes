@@ -194,7 +194,70 @@ setNombre("");
       setCargando(false);
     }
   }
+///editar producto
 
+
+
+async function eliminarProducto(id) {
+  const token = sessionStorage.getItem("adminToken");
+
+  if (!token) {
+    setMensaje("No hay sesión de administrador.");
+    return;
+  }
+
+  const confirmar = window.confirm(
+    "¿Seguro que querés eliminar este producto?"
+  );
+
+  if (!confirmar) return;
+
+  try {
+    const respuesta = await fetch(`${API_URL}/api/productos/${id}`, {
+      method: "DELETE",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    const texto = await respuesta.text();
+
+    let data;
+
+    try {
+      data = JSON.parse(texto);
+    } catch {
+      throw new Error("El servidor no devolvió JSON válido.");
+    }
+
+    if (!respuesta.ok) {
+      throw new Error(
+        data.mensaje || "No se pudo eliminar el producto."
+      );
+    }
+
+    setMensaje("Producto eliminado correctamente.");
+
+    await cargarProductos();
+
+  } catch (error) {
+    console.error("Error eliminando producto:", error);
+    setMensaje(error.message);
+  }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+///
   return (
     <div>
       <h1>Panel de administrador</h1>
@@ -326,12 +389,13 @@ setNombre("");
         Editar
       </button>
 
-      <button
-        type="button"
-        style={{ marginLeft: "10px" }}
-      >
-        Eliminar
-      </button>
+  <button
+  type="button"
+  onClick={() => eliminarProducto(producto.id)}
+  style={{ marginLeft: "10px" }}
+>
+  Eliminar
+</button>
     </div>
   ))
 )}
