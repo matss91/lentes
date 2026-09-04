@@ -287,7 +287,8 @@ export default async function handler(
               )
             ) + 1
           : 1;
-
+console.log("IDS ANTES DE GENERAR ID:", productos.map(producto => producto.id));
+console.log("NUEVO ID GENERADO:", nuevoId);
       const nuevoProducto = {
         id: nuevoId,
         nombre:
