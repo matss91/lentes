@@ -7,11 +7,12 @@ function Admin() {
   const [precio, setPrecio] = useState("");
   const [descripcion, setDescripcion] = useState("");
   const [imagenes, setImagenes] = useState([null]);
+  const [imagenesExistentes, setImagenesExistentes] = useState([]);
   const [productos, setProductos] = useState([]);
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(false);
   const [editandoId, setEditandoId] = useState(null);
-const [imagenesExistentes, setImagenesExistentes] = useState([]);
+
   useEffect(() => {
     cargarProductos();
   }, []);
@@ -33,13 +34,8 @@ const [imagenesExistentes, setImagenesExistentes] = useState([]);
       const listaProductos = Array.isArray(data) ? data : [];
 
       setProductos(listaProductos);
-
-      console.log("PRODUCTOS CARGADOS:", listaProductos);
-
-      return listaProductos;
     } catch (error) {
       console.error("Error cargando productos:", error);
-      return [];
     }
   }
 
@@ -109,57 +105,42 @@ const [imagenesExistentes, setImagenesExistentes] = useState([]);
     }
 
     if (!respuesta.ok) {
-      throw new Error(data.mensaje || "No se pudo subir la imagen.");
+      throw new Error(
+        data.mensaje || "No se pudo subir la imagen."
+      );
     }
 
     return data.url;
   }
-///Editar
 
-function editarProducto(producto) {
-  if (cargando) return;
+  function editarProducto(producto) {
+    if (cargando) return;
 
-  setEditandoId(producto.id);
-  setNombre(producto.nombre);
-  setPrecio(producto.precio);
-  setDescripcion(producto.descripcion);
+    setEditandoId(producto.id);
+    setNombre(producto.nombre);
+    setPrecio(producto.precio);
+    setDescripcion(producto.descripcion);
+    setImagenesExistentes(producto.imagenes || []);
+    setImagenes([null]);
+    setMensaje(`Editando: ${producto.nombre}`);
 
-  // Guardamos las imágenes que ya tiene
-  setImagenesExistentes(producto.imagenes || []);
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }
 
-  // Campo vacío para poder agregar imágenes nuevas
-  setImagenes([null]);
+  function eliminarImagenExistente(index) {
+    if (cargando) return;
 
-  setMensaje(`Editando: ${producto.nombre}`);
+    setImagenesExistentes(
+      imagenesExistentes.filter((_, i) => i !== index)
+    );
+  }
 
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth",
-  });
-}
-
-
-
-
-
-///
-
-///editar imagen existente
-
-function eliminarImagenExistente(index) {
-  if (cargando) return;
-
-  setImagenesExistentes(
-    imagenesExistentes.filter((_, i) => i !== index)
-  );
-}
-
-
-///
   async function agregarProducto(e) {
     e.preventDefault();
 
-    // Evita que se pueda iniciar otra operación
     if (cargando) return;
 
     setCargando(true);
@@ -186,15 +167,18 @@ function eliminarImagenExistente(index) {
 
       for (const archivo of archivos) {
         if (!archivo.type.startsWith("image/")) {
-          throw new Error(`${archivo.name} no es una imagen válida.`);
+          throw new Error(
+            `${archivo.name} no es una imagen válida.`
+          );
         }
 
         if (archivo.size > 5 * 1024 * 1024) {
-          throw new Error(`${archivo.name} supera el límite de 5 MB.`);
+          throw new Error(
+            `${archivo.name} supera el límite de 5 MB.`
+          );
         }
 
         const url = await subirImagen(archivo, token);
-
         urlsImagenes.push(url);
       }
 
@@ -207,8 +191,6 @@ function eliminarImagenExistente(index) {
         imagenes: urlsImagenes,
       };
 
-      console.log("POST AGREGAR PRODUCTO");
-
       const respuesta = await fetch(`${API_URL}/api/productos`, {
         method: "POST",
         headers: {
@@ -217,8 +199,6 @@ function eliminarImagenExistente(index) {
         },
         body: JSON.stringify(producto),
       });
-
-      console.log("RESPUESTA POST:", respuesta.status);
 
       const texto = await respuesta.text();
 
@@ -240,139 +220,128 @@ function eliminarImagenExistente(index) {
 
       setMensaje("Producto agregado correctamente.");
 
-      // Esperamos a que termine de cargar la lista
-     // await cargarProductos();
-window.location.reload()
-      setNombre("");
-      setPrecio("");
-      setDescripcion("");
-      setImagenes([null]);
+      window.location.reload();
     } catch (error) {
       console.error("Error agregando producto:", error);
       setMensaje(error.message);
     } finally {
-      // Recién acá se permite otra operación
       setCargando(false);
     }
   }
-///actualizar producto 
-async function actualizarProducto(e) {
-  e.preventDefault();
 
-  if (cargando) return;
+  async function actualizarProducto(e) {
+    e.preventDefault();
 
-  setCargando(true);
-  setMensaje("");
+    if (cargando) return;
 
-  const token = sessionStorage.getItem("adminToken");
+    setCargando(true);
+    setMensaje("");
 
-  if (!token) {
-    setMensaje("No hay sesión de administrador.");
-    setCargando(false);
-    return;
-  }
+    const token = sessionStorage.getItem("adminToken");
 
-  try {
-    const productoOriginal = productos.find(
-      (producto) => Number(producto.id) === Number(editandoId)
-    );
-
-    if (!productoOriginal) {
-      throw new Error("No se encontró el producto.");
+    if (!token) {
+      setMensaje("No hay sesión de administrador.");
+      setCargando(false);
+      return;
     }
-
- let urlsImagenes = [...imagenesExistentes];
-
-const archivos = imagenes.filter(Boolean);
-
-if (archivos.length > 0) {
-  setMensaje("Subiendo imágenes...");
-
-      for (const archivo of archivos) {
-        if (!archivo.type.startsWith("image/")) {
-          throw new Error(`${archivo.name} no es una imagen válida.`);
-        }
-
-        if (archivo.size > 5 * 1024 * 1024) {
-          throw new Error(`${archivo.name} supera el límite de 5 MB.`);
-        }
-
-        const url = await subirImagen(archivo, token);
-
-        urlsImagenes.push(url);
-      }
-      if (urlsImagenes.length > 4) {
-  throw new Error("Un producto puede tener como máximo 4 imágenes.");
-}
-    }
-
-    setMensaje("Guardando cambios...");
-
-    const productoActualizado = {
-      id: editandoId,
-      nombre: nombre.trim(),
-      precio: Number(precio),
-      descripcion: descripcion.trim(),
-      imagenes: urlsImagenes,
-    };
-
-    const respuesta = await fetch(`${API_URL}/api/productos`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify(productoActualizado),
-    });
-
-    const texto = await respuesta.text();
-
-    let data;
 
     try {
-      data = JSON.parse(texto);
-    } catch {
-      throw new Error(
-        "El servidor no devolvió una respuesta JSON válida."
+      const productoOriginal = productos.find(
+        (producto) =>
+          Number(producto.id) === Number(editandoId)
       );
+
+      if (!productoOriginal) {
+        throw new Error("No se encontró el producto.");
+      }
+
+      let urlsImagenes = [...imagenesExistentes];
+
+      const archivos = imagenes.filter(Boolean);
+
+      if (archivos.length > 0) {
+        setMensaje("Subiendo imágenes...");
+
+        for (const archivo of archivos) {
+          if (!archivo.type.startsWith("image/")) {
+            throw new Error(
+              `${archivo.name} no es una imagen válida.`
+            );
+          }
+
+          if (archivo.size > 5 * 1024 * 1024) {
+            throw new Error(
+              `${archivo.name} supera el límite de 5 MB.`
+            );
+          }
+
+          const url = await subirImagen(archivo, token);
+          urlsImagenes.push(url);
+        }
+      }
+
+      if (urlsImagenes.length > 4) {
+        throw new Error(
+          "Un producto puede tener como máximo 4 imágenes."
+        );
+      }
+
+      setMensaje("Guardando cambios...");
+
+      const productoActualizado = {
+        id: editandoId,
+        nombre: nombre.trim(),
+        precio: Number(precio),
+        descripcion: descripcion.trim(),
+        imagenes: urlsImagenes,
+      };
+
+      const respuesta = await fetch(`${API_URL}/api/productos`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(productoActualizado),
+      });
+
+      const texto = await respuesta.text();
+
+      let data;
+
+      try {
+        data = JSON.parse(texto);
+      } catch {
+        throw new Error(
+          "El servidor no devolvió una respuesta JSON válida."
+        );
+      }
+
+      if (!respuesta.ok) {
+        throw new Error(
+          data.mensaje || "No se pudo actualizar el producto."
+        );
+      }
+
+      setMensaje("Producto actualizado correctamente.");
+
+      setEditandoId(null);
+      setNombre("");
+      setPrecio("");
+      setDescripcion("");
+      setImagenes([null]);
+      setImagenesExistentes([]);
+
+      await cargarProductos();
+    } catch (error) {
+      console.error("Error actualizando producto:", error);
+      setMensaje(error.message);
+    } finally {
+      setCargando(false);
     }
-
-    if (!respuesta.ok) {
-      throw new Error(
-        data.mensaje || "No se pudo actualizar el producto."
-      );
-    }
-
-    setMensaje("Producto actualizado correctamente.");
-
-    setEditandoId(null);
-    setNombre("");
-    setPrecio("");
-    setDescripcion("");
-    setImagenes([null]);
-
-    await cargarProductos();
-
-  } catch (error) {
-    console.error("Error actualizando producto:", error);
-    setMensaje(error.message);
-  } finally {
-    setCargando(false);
   }
-}
-
-
-
-///
-
-
-
-
-
-
 
   async function eliminarProducto(id) {
-    // Evita doble click o iniciar otra operación
     if (cargando) return;
 
     const token = sessionStorage.getItem("adminToken");
@@ -392,7 +361,6 @@ if (archivos.length > 0) {
     setMensaje("Eliminando producto...");
 
     try {
-      console.log("VOY A HACER DELETE DEL ID:", id);
       const respuesta = await fetch(`${API_URL}/api/productos`, {
         method: "DELETE",
         headers: {
@@ -409,9 +377,7 @@ if (archivos.length > 0) {
       try {
         data = JSON.parse(texto);
       } catch {
-        throw new Error(
-          "El servidor no devolvió JSON válido."
-        );
+        throw new Error("El servidor no devolvió JSON válido.");
       }
 
       if (!respuesta.ok) {
@@ -422,31 +388,34 @@ if (archivos.length > 0) {
 
       setMensaje("Producto eliminado correctamente.");
 
-      // Esperamos a que termine de actualizar la lista
       await cargarProductos();
-
     } catch (error) {
       console.error("Error eliminando producto:", error);
       setMensaje(error.message);
     } finally {
-      // Recién ahora se permite otra operación
       setCargando(false);
     }
   }
-console.log("PRODUCTOS QUE VA A MOSTRAR:", productos);
+
   return (
     <div>
       <h1>Panel de administrador</h1>
 
       <p>Login correcto. Estás dentro del panel.</p>
 
-     <h2>
-  {editandoId !== null
-    ? "Editar anteojo"
-    : "Agregar anteojo"}
-</h2>
+      <h2>
+        {editandoId !== null
+          ? "Editar anteojo"
+          : "Agregar anteojo"}
+      </h2>
 
-      <form onSubmit={editandoId !== null ? actualizarProducto : agregarProducto}>
+      <form
+        onSubmit={
+          editandoId !== null
+            ? actualizarProducto
+            : agregarProducto
+        }
+      >
         <div>
           <label>Nombre</label>
           <br />
@@ -497,40 +466,43 @@ console.log("PRODUCTOS QUE VA A MOSTRAR:", productos);
 
         <div>
           <label>Imágenes</label>
-{editandoId !== null && imagenesExistentes.length > 0 && (
-  <div style={{ marginTop: "15px" }}>
-    <p>Imágenes actuales:</p>
 
-    {imagenesExistentes.map((url, index) => (
-      <div
-        key={index}
-        style={{
-          marginBottom: "15px",
-        }}
-      >
-        <img
-          src={url}
-          alt={`Imagen ${index + 1}`}
-          style={{
-            width: "120px",
-            height: "120px",
-            objectFit: "cover",
-            display: "block",
-            marginBottom: "5px",
-          }}
-        />
+          {editandoId !== null &&
+            imagenesExistentes.length > 0 && (
+              <div style={{ marginTop: "15px" }}>
+                <p>Imágenes actuales:</p>
 
-        <button
-          type="button"
-          onClick={() => eliminarImagenExistente(index)}
-          disabled={cargando}
-        >
-          Eliminar imagen
-        </button>
-      </div>
-    ))}
-  </div>
-)}
+                {imagenesExistentes.map((url, index) => (
+                  <div
+                    key={index}
+                    style={{ marginBottom: "15px" }}
+                  >
+                    <img
+                      src={url}
+                      alt={`Imagen ${index + 1}`}
+                      style={{
+                        width: "120px",
+                        height: "120px",
+                        objectFit: "cover",
+                        display: "block",
+                        marginBottom: "5px",
+                      }}
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        eliminarImagenExistente(index)
+                      }
+                      disabled={cargando}
+                    >
+                      Eliminar imagen
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+
           {imagenes.map((imagen, index) => (
             <div
               key={index}
@@ -545,7 +517,9 @@ console.log("PRODUCTOS QUE VA A MOSTRAR:", productos);
                     e.target.files[0] || null
                   )
                 }
-                required={editandoId === null && index === 0}
+                required={
+                  editandoId === null && index === 0
+                }
                 disabled={cargando}
               />
 
@@ -584,15 +558,12 @@ console.log("PRODUCTOS QUE VA A MOSTRAR:", productos);
 
         <br />
 
-        <button
-          type="submit"
-          disabled={cargando}
-        >
-         {cargando
-  ? "Procesando..."
-  : editandoId !== null
-    ? "Guardar cambios"
-    : "Agregar anteojo"}
+        <button type="submit" disabled={cargando}>
+          {cargando
+            ? "Procesando..."
+            : editandoId !== null
+              ? "Guardar cambios"
+              : "Agregar anteojo"}
         </button>
       </form>
 
@@ -622,13 +593,13 @@ console.log("PRODUCTOS QUE VA A MOSTRAR:", productos);
               Imágenes: {producto.imagenes?.length || 0}
             </p>
 
-        <button
-  type="button"
-  onClick={() => editarProducto(producto)}
-  disabled={cargando}
->
-  Editar
-</button>
+            <button
+              type="button"
+              onClick={() => editarProducto(producto)}
+              disabled={cargando}
+            >
+              Editar
+            </button>
 
             <button
               type="button"
@@ -638,9 +609,7 @@ console.log("PRODUCTOS QUE VA A MOSTRAR:", productos);
               disabled={cargando}
               style={{ marginLeft: "10px" }}
             >
-              {cargando
-                ? "Procesando..."
-                : "Eliminar"}
+              {cargando ? "Procesando..." : "Eliminar"}
             </button>
           </div>
         ))
