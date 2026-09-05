@@ -94,6 +94,14 @@ async function guardarProductos(productos) {
 
   console.log("BLOB GUARDADO:", blob.url);
 
+  // COMPROBACIÓN
+  const productosComprobados = await obtenerProductos();
+
+  console.log(
+    "PRODUCTOS INMEDIATAMENTE DESPUÉS DE GUARDAR:",
+    productosComprobados
+  );
+
   return blob;
 }
 
