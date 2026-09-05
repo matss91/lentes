@@ -463,98 +463,166 @@ function Admin() {
         </div>
 
         <br />
+<div>
+  <label>Imágenes</label>
 
-        <div>
-          <label>Imágenes</label>
+  {/* IMÁGENES EXISTENTES */}
+  {editandoId !== null && (
+    <div
+      style={{
+        marginTop: "15px",
+        padding: "15px",
+        border: "1px solid #ccc",
+        borderRadius: "8px",
+      }}
+    >
+      <h3 style={{ marginTop: 0 }}>Imágenes actuales</h3>
 
-          {editandoId !== null &&
-            imagenesExistentes.length > 0 && (
-              <div style={{ marginTop: "15px" }}>
-                <p>Imágenes actuales:</p>
-
-                {imagenesExistentes.map((url, index) => (
-                  <div
-                    key={index}
-                    style={{ marginBottom: "15px" }}
-                  >
-            <img
-  src={`${API_URL}/api/imagen?url=${encodeURIComponent(url)}`}
-  alt={`Imagen ${index + 1}`}
-                      style={{
-                        width: "120px",
-                        height: "120px",
-                        objectFit: "cover",
-                        display: "block",
-                        marginBottom: "5px",
-                      }}
-                    />
-
-                    <button
-                      type="button"
-                      onClick={() =>
-                        eliminarImagenExistente(index)
-                      }
-                      disabled={cargando}
-                    >
-                      Eliminar imagen
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-
-          {imagenes.map((imagen, index) => (
+      {imagenesExistentes.length === 0 ? (
+        <p>No hay imágenes actuales.</p>
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            gap: "20px",
+            flexWrap: "wrap",
+          }}
+        >
+          {imagenesExistentes.map((url, index) => (
             <div
               key={index}
-              style={{ marginTop: "10px" }}
+              style={{
+                border: "1px solid #ddd",
+                padding: "10px",
+                borderRadius: "8px",
+                textAlign: "center",
+              }}
             >
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) =>
-                  cambiarImagen(
-                    index,
-                    e.target.files[0] || null
-                  )
-                }
-                required={
-                  editandoId === null && index === 0
-                }
-                disabled={cargando}
+              <img
+                src={`${API_URL}/api/imagen?url=${encodeURIComponent(url)}`}
+                alt={`Imagen ${index + 1}`}
+                style={{
+                  width: "150px",
+                  height: "150px",
+                  objectFit: "cover",
+                  display: "block",
+                  marginBottom: "10px",
+                  borderRadius: "6px",
+                }}
               />
 
-              {imagen && (
-                <span style={{ marginLeft: "10px" }}>
-                  {imagen.name}
-                </span>
-              )}
-
-              {imagenes.length > 1 && (
-                <button
-                  type="button"
-                  onClick={() =>
-                    eliminarCampoImagen(index)
-                  }
-                  disabled={cargando}
-                  style={{ marginLeft: "5px" }}
-                >
-                  Eliminar
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={() => eliminarImagenExistente(index)}
+                disabled={cargando}
+                style={{
+                  background: "#dc3545",
+                  color: "white",
+                  border: "none",
+                  padding: "8px 12px",
+                  borderRadius: "5px",
+                  cursor: "pointer",
+                }}
+              >
+                🗑 Eliminar imagen
+              </button>
             </div>
           ))}
-
-          {imagenes.length < 4 && (
-            <button
-              type="button"
-              onClick={agregarCampoImagen}
-              disabled={cargando}
-              style={{ marginTop: "10px" }}
-            >
-              + Agregar otra imagen
-            </button>
-          )}
         </div>
+      )}
+    </div>
+  )}
+
+  {/* AGREGAR IMÁGENES */}
+  <div
+    style={{
+      marginTop: "20px",
+      padding: "15px",
+      border: "1px solid #ccc",
+      borderRadius: "8px",
+    }}
+  >
+    <h3 style={{ marginTop: 0 }}>
+      {editandoId !== null
+        ? "Agregar nuevas imágenes"
+        : "Seleccionar imágenes"}
+    </h3>
+
+    {imagenes.map((imagen, index) => (
+      <div
+        key={index}
+        style={{
+          marginTop: "10px",
+          padding: "10px",
+          background: "#f5f5f5",
+          borderRadius: "6px",
+        }}
+      >
+        <input
+          type="file"
+          accept="image/*"
+          onChange={(e) =>
+            cambiarImagen(
+              index,
+              e.target.files[0] || null
+            )
+          }
+          required={
+            editandoId === null && index === 0
+          }
+          disabled={cargando}
+        />
+
+        {imagen && (
+          <span style={{ marginLeft: "10px" }}>
+            {imagen.name}
+          </span>
+        )}
+
+        {imagenes.length > 1 && (
+          <button
+            type="button"
+            onClick={() =>
+              eliminarCampoImagen(index)
+            }
+            disabled={cargando}
+            style={{
+              marginLeft: "10px",
+              background: "#6c757d",
+              color: "white",
+              border: "none",
+              padding: "6px 10px",
+              borderRadius: "5px",
+              cursor: "pointer",
+            }}
+          >
+            Quitar
+          </button>
+        )}
+      </div>
+    ))}
+
+    {imagenes.length < 4 && (
+      <button
+        type="button"
+        onClick={agregarCampoImagen}
+        disabled={cargando}
+        style={{
+          marginTop: "15px",
+          background: "#007bff",
+          color: "white",
+          border: "none",
+          padding: "9px 14px",
+          borderRadius: "5px",
+          cursor: "pointer",
+        }}
+      >
+        ➕ Agregar otra imagen
+      </button>
+    )}
+  </div>
+</div>
+      
 
         <br />
 
