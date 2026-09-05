@@ -77,7 +77,6 @@ async function obtenerProductos() {
 // GUARDAR PRODUCTOS EN BLOB
 // =========================
 
-
 async function guardarProductos(productos) {
   console.log("GUARDANDO PRODUCTOS:", productos);
 
@@ -94,12 +93,28 @@ async function guardarProductos(productos) {
 
   console.log("BLOB GUARDADO:", blob.url);
 
-  // COMPROBACIÓN
-  const productosComprobados = await obtenerProductos();
+  const ultimoProducto = productos[productos.length - 1];
+
+  for (let intento = 1; intento <= 5; intento++) {
+    const productosComprobados = await obtenerProductos();
+
+    const encontrado = productosComprobados.some(
+      producto =>
+        Number(producto.id) === Number(ultimoProducto.id)
+    );
+
+    if (encontrado) {
+      console.log("BLOB ACTUALIZADO CORRECTAMENTE");
+      return blob;
+    }
+
+    await new Promise(resolve =>
+      setTimeout(resolve, 1000)
+    );
+  }
 
   console.log(
-    "PRODUCTOS INMEDIATAMENTE DESPUÉS DE GUARDAR:",
-    productosComprobados
+    "ADVERTENCIA: Blob todavía no refleja la versión nueva"
   );
 
   return blob;
