@@ -77,26 +77,27 @@ async function obtenerProductos() {
 // GUARDAR PRODUCTOS EN BLOB
 // =========================
 
-async function guardarProductos(
-  productos
-) {
-  await put(
+
+async function guardarProductos(productos) {
+  console.log("GUARDANDO PRODUCTOS:", productos);
+
+  const blob = await put(
     NOMBRE_ARCHIVO,
-    JSON.stringify(
-      productos,
-      null,
-      2
-    ),
+    JSON.stringify(productos, null, 2),
     {
       access: "private",
-      token:
-        process.env
-          .BLOB_READ_WRITE_TOKEN,
+      token: process.env.BLOB_READ_WRITE_TOKEN,
       addRandomSuffix: false,
       allowOverwrite: true,
     }
   );
+
+  console.log("BLOB GUARDADO:", blob.url);
+
+  return blob;
 }
+
+
 
 // =========================
 // HANDLER
