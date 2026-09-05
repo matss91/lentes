@@ -11,7 +11,7 @@ function Admin() {
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(false);
   const [editandoId, setEditandoId] = useState(null);
-
+const [imagenesExistentes, setImagenesExistentes] = useState([]);
   useEffect(() => {
     cargarProductos();
   }, []);
