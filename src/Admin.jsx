@@ -10,6 +10,7 @@ function Admin() {
   const [productos, setProductos] = useState([]);
   const [mensaje, setMensaje] = useState("");
   const [cargando, setCargando] = useState(false);
+  const [editandoId, setEditandoId] = useState(null);
 
   useEffect(() => {
     cargarProductos();
@@ -113,7 +114,33 @@ function Admin() {
 
     return data.url;
   }
+///Editar
 
+function editarProducto(producto) {
+  if (cargando) return;
+
+  setEditandoId(producto.id);
+  setNombre(producto.nombre);
+  setPrecio(producto.precio);
+  setDescripcion(producto.descripcion);
+
+  // En edición no cargamos las imágenes como archivos.
+  // Las imágenes existentes se conservarán si no elegís nuevas.
+  setImagenes([null]);
+
+  setMensaje(`Editando: ${producto.nombre}`);
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth",
+  });
+}
+
+
+
+
+
+///
   async function agregarProducto(e) {
     e.preventDefault();
 
@@ -213,6 +240,122 @@ window.location.reload()
       setCargando(false);
     }
   }
+///actualizar producto 
+async function actualizarProducto(e) {
+  e.preventDefault();
+
+  if (cargando) return;
+
+  setCargando(true);
+  setMensaje("");
+
+  const token = sessionStorage.getItem("adminToken");
+
+  if (!token) {
+    setMensaje("No hay sesión de administrador.");
+    setCargando(false);
+    return;
+  }
+
+  try {
+    const productoOriginal = productos.find(
+      (producto) => Number(producto.id) === Number(editandoId)
+    );
+
+    if (!productoOriginal) {
+      throw new Error("No se encontró el producto.");
+    }
+
+    let urlsImagenes = productoOriginal.imagenes || [];
+
+    // Si el usuario seleccionó imágenes nuevas,
+    // las subimos y reemplazamos las anteriores.
+    const archivos = imagenes.filter(Boolean);
+
+    if (archivos.length > 0) {
+      setMensaje("Subiendo imágenes...");
+
+      urlsImagenes = [];
+
+      for (const archivo of archivos) {
+        if (!archivo.type.startsWith("image/")) {
+          throw new Error(`${archivo.name} no es una imagen válida.`);
+        }
+
+        if (archivo.size > 5 * 1024 * 1024) {
+          throw new Error(`${archivo.name} supera el límite de 5 MB.`);
+        }
+
+        const url = await subirImagen(archivo, token);
+
+        urlsImagenes.push(url);
+      }
+    }
+
+    setMensaje("Guardando cambios...");
+
+    const productoActualizado = {
+      id: editandoId,
+      nombre: nombre.trim(),
+      precio: Number(precio),
+      descripcion: descripcion.trim(),
+      imagenes: urlsImagenes,
+    };
+
+    const respuesta = await fetch(`${API_URL}/api/productos`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify(productoActualizado),
+    });
+
+    const texto = await respuesta.text();
+
+    let data;
+
+    try {
+      data = JSON.parse(texto);
+    } catch {
+      throw new Error(
+        "El servidor no devolvió una respuesta JSON válida."
+      );
+    }
+
+    if (!respuesta.ok) {
+      throw new Error(
+        data.mensaje || "No se pudo actualizar el producto."
+      );
+    }
+
+    setMensaje("Producto actualizado correctamente.");
+
+    setEditandoId(null);
+    setNombre("");
+    setPrecio("");
+    setDescripcion("");
+    setImagenes([null]);
+
+    await cargarProductos();
+
+  } catch (error) {
+    console.error("Error actualizando producto:", error);
+    setMensaje(error.message);
+  } finally {
+    setCargando(false);
+  }
+}
+
+
+
+///
+
+
+
+
+
+
 
   async function eliminarProducto(id) {
     // Evita doble click o iniciar otra operación
@@ -283,9 +426,13 @@ console.log("PRODUCTOS QUE VA A MOSTRAR:", productos);
 
       <p>Login correcto. Estás dentro del panel.</p>
 
-      <h2>Agregar anteojo</h2>
+     <h2>
+  {editandoId !== null
+    ? "Editar anteojo"
+    : "Agregar anteojo"}
+</h2>
 
-      <form onSubmit={agregarProducto}>
+      <form onSubmit={editandoId !== null ? actualizarProducto : agregarProducto}>
         <div>
           <label>Nombre</label>
           <br />
@@ -394,9 +541,11 @@ console.log("PRODUCTOS QUE VA A MOSTRAR:", productos);
           type="submit"
           disabled={cargando}
         >
-          {cargando
-            ? "Procesando..."
-            : "Agregar anteojo"}
+         {cargando
+  ? "Procesando..."
+  : editandoId !== null
+    ? "Guardar cambios"
+    : "Agregar anteojo"}
         </button>
       </form>
 
@@ -426,12 +575,13 @@ console.log("PRODUCTOS QUE VA A MOSTRAR:", productos);
               Imágenes: {producto.imagenes?.length || 0}
             </p>
 
-            <button
-              type="button"
-              disabled={cargando}
-            >
-              Editar
-            </button>
+        <button
+  type="button"
+  onClick={() => editarProducto(producto)}
+  disabled={cargando}
+>
+  Editar
+</button>
 
             <button
               type="button"
