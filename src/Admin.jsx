@@ -477,9 +477,9 @@ function Admin() {
                     key={index}
                     style={{ marginBottom: "15px" }}
                   >
-                    <img
-                      src={url}
-                      alt={`Imagen ${index + 1}`}
+            <img
+  src={`${API_URL}/api/imagen?url=${encodeURIComponent(url)}`}
+  alt={`Imagen ${index + 1}`}
                       style={{
                         width: "120px",
                         height: "120px",
