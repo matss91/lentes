@@ -199,8 +199,8 @@ function Admin() {
       setMensaje("Producto agregado correctamente.");
 
       // Esperamos a que termine de cargar la lista
-      await cargarProductos();
-
+     // await cargarProductos();
+window.location.reload()
       setNombre("");
       setPrecio("");
       setDescripcion("");
