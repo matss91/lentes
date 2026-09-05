@@ -124,8 +124,10 @@ function editarProducto(producto) {
   setPrecio(producto.precio);
   setDescripcion(producto.descripcion);
 
-  // En edición no cargamos las imágenes como archivos.
-  // Las imágenes existentes se conservarán si no elegís nuevas.
+  // Guardamos las imágenes que ya tiene
+  setImagenesExistentes(producto.imagenes || []);
+
+  // Campo vacío para poder agregar imágenes nuevas
   setImagenes([null]);
 
   setMensaje(`Editando: ${producto.nombre}`);
@@ -138,6 +140,19 @@ function editarProducto(producto) {
 
 
 
+
+
+///
+
+///editar imagen existente
+
+function eliminarImagenExistente(index) {
+  if (cargando) return;
+
+  setImagenesExistentes(
+    imagenesExistentes.filter((_, i) => i !== index)
+  );
+}
 
 
 ///
@@ -266,16 +281,12 @@ async function actualizarProducto(e) {
       throw new Error("No se encontró el producto.");
     }
 
-    let urlsImagenes = productoOriginal.imagenes || [];
+ let urlsImagenes = [...imagenesExistentes];
 
-    // Si el usuario seleccionó imágenes nuevas,
-    // las subimos y reemplazamos las anteriores.
-    const archivos = imagenes.filter(Boolean);
+const archivos = imagenes.filter(Boolean);
 
-    if (archivos.length > 0) {
-      setMensaje("Subiendo imágenes...");
-
-      urlsImagenes = [];
+if (archivos.length > 0) {
+  setMensaje("Subiendo imágenes...");
 
       for (const archivo of archivos) {
         if (!archivo.type.startsWith("image/")) {
@@ -290,6 +301,9 @@ async function actualizarProducto(e) {
 
         urlsImagenes.push(url);
       }
+      if (urlsImagenes.length > 4) {
+  throw new Error("Un producto puede tener como máximo 4 imágenes.");
+}
     }
 
     setMensaje("Guardando cambios...");
@@ -483,7 +497,40 @@ console.log("PRODUCTOS QUE VA A MOSTRAR:", productos);
 
         <div>
           <label>Imágenes</label>
+{editandoId !== null && imagenesExistentes.length > 0 && (
+  <div style={{ marginTop: "15px" }}>
+    <p>Imágenes actuales:</p>
 
+    {imagenesExistentes.map((url, index) => (
+      <div
+        key={index}
+        style={{
+          marginBottom: "15px",
+        }}
+      >
+        <img
+          src={url}
+          alt={`Imagen ${index + 1}`}
+          style={{
+            width: "120px",
+            height: "120px",
+            objectFit: "cover",
+            display: "block",
+            marginBottom: "5px",
+          }}
+        />
+
+        <button
+          type="button"
+          onClick={() => eliminarImagenExistente(index)}
+          disabled={cargando}
+        >
+          Eliminar imagen
+        </button>
+      </div>
+    ))}
+  </div>
+)}
           {imagenes.map((imagen, index) => (
             <div
               key={index}
