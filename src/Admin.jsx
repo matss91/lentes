@@ -498,7 +498,7 @@ console.log("PRODUCTOS QUE VA A MOSTRAR:", productos);
                     e.target.files[0] || null
                   )
                 }
-                required={index === 0}
+                required={editandoId === null && index === 0}
                 disabled={cargando}
               />
 
