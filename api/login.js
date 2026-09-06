@@ -70,27 +70,7 @@ if (!administrador) {
   });
 }
 
-  if (!adminUsuario || !adminPassword || !jwtSecret) {
-    return res.status(500).json({
-      ok: false,
-      mensaje: "El administrador no está configurado",
-    });
-  }
 
-  const usuarioCorrecto =
-    typeof usuario === "string" &&
-    usuario === adminUsuario;
-
-  const passwordCorrecta =
-    typeof password === "string" &&
-    password === adminPassword;
-
-  if (!usuarioCorrecto || !passwordCorrecta) {
-    return res.status(401).json({
-      ok: false,
-      mensaje: "Usuario o contraseña incorrectos",
-    });
-  }
 
   // Crear token firmado
  const token = jwt.sign(
