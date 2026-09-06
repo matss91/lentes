@@ -1,7 +1,7 @@
 
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-
+import { download } from "@vercel/blob";
 export default  async function handler(req, res) {
   // CORS
   res.setHeader(
@@ -33,20 +33,11 @@ export default  async function handler(req, res) {
 
   const { usuario, password } = req.body;
 
-  const administradores = [
-    {
-      usuario: process.env.ADMIN1_USER,
-      passwordHash: process.env.ADMIN1_PASSWORD_HASH,
-    },
-    {
-      usuario: process.env.ADMIN2_USER,
-      passwordHash: process.env.ADMIN2_PASSWORD_HASH,
-    },
-    {
-      usuario: process.env.ADMIN3_USER,
-      passwordHash: process.env.ADMIN3_PASSWORD_HASH,
-    },
-  ];
+const blob = await download("usuarios/usuarios.json", {
+  token: process.env.BLOB_READ_WRITE_TOKEN,
+});
+
+const administradores = JSON.parse(await blob.text());
 
   const jwtSecret = process.env.JWT_SECRET;
 
