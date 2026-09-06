@@ -573,11 +573,28 @@ function Admin() {
           disabled={cargando}
         />
 
-        {imagen && (
-          <span style={{ marginLeft: "10px" }}>
-            {imagen.name}
-          </span>
-        )}
+       
+{imagen && (
+  <div style={{ marginTop: "10px" }}>
+    <img
+      src={obtenerVistaPrevia(imagen)}
+      alt={`Vista previa ${index + 1}`}
+      style={{
+        width: "150px",
+        height: "150px",
+        objectFit: "cover",
+        borderRadius: "8px",
+        border: "1px solid #ccc",
+        display: "block",
+        marginBottom: "8px",
+      }}
+    />
+
+    <span>{imagen.name}</span>
+  </div>
+)}
+
+
 
         {imagenes.length > 1 && (
           <button
