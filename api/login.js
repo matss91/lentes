@@ -1,8 +1,8 @@
-
+git
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
-import { download } from "@vercel/blob";
-export default  async function handler(req, res) {
+
+export default async function handler(req, res) {
   // CORS
   res.setHeader(
     "Access-Control-Allow-Origin",
@@ -33,11 +33,20 @@ export default  async function handler(req, res) {
 
   const { usuario, password } = req.body;
 
-const blob = await download("usuarios/usuarios.json", {
-  token: process.env.BLOB_READ_WRITE_TOKEN,
-});
-
-const administradores = JSON.parse(await blob.text());
+  const administradores = [
+    {
+      usuario: process.env.ADMIN1_USER,
+      passwordHash: process.env.ADMIN1_PASSWORD_HASH,
+    },
+    {
+      usuario: process.env.ADMIN2_USER,
+      passwordHash: process.env.ADMIN2_PASSWORD_HASH,
+    },
+    {
+      usuario: process.env.ADMIN3_USER,
+      passwordHash: process.env.ADMIN3_PASSWORD_HASH,
+    },
+  ];
 
   const jwtSecret = process.env.JWT_SECRET;
 
@@ -71,7 +80,6 @@ const administradores = JSON.parse(await blob.text());
     });
   }
 
-  // Crear token firmado
   const token = jwt.sign(
     {
       rol: "admin",
@@ -88,6 +96,4 @@ const administradores = JSON.parse(await blob.text());
     token,
   });
 }
-
-
 
