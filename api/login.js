@@ -38,8 +38,15 @@ export default async function handler(req, res) {
   token: process.env.BLOB_READ_WRITE_TOKEN,
 });
 
-const respuesta = await fetch(resultado.url);
-const administradores = await respuesta.json();
+if (!resultado || !resultado.stream) {
+  return res.status(500).json({
+    ok: false,
+    mensaje: "No se pudo leer usuarios.json",
+  });
+}
+
+const texto = await new Response(resultado.stream).text();
+const administradores = JSON.parse(texto);
 
 
   const jwtSecret = process.env.JWT_SECRET;
