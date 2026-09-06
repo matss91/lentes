@@ -684,7 +684,32 @@ function obtenerVistaPrevia(imagen) { if (!imagen) return null; return URL.creat
             <p>
               Imágenes: {producto.imagenes?.length || 0}
             </p>
-
+{producto.imagenes?.length > 0 && (
+  <div
+    style={{
+      display: "flex",
+      gap: "10px",
+      flexWrap: "wrap",
+      marginTop: "10px",
+      marginBottom: "15px",
+    }}
+  >
+    {producto.imagenes.map((url, index) => (
+      <img
+        key={index}
+        src={`${API_URL}/api/imagen?url=${encodeURIComponent(url)}`}
+        alt={`${producto.nombre} ${index + 1}`}
+        style={{
+          width: "120px",
+          height: "120px",
+          objectFit: "cover",
+          borderRadius: "8px",
+          border: "1px solid #ccc",
+        }}
+      />
+    ))}
+  </div>
+)}
             <button
               type="button"
               onClick={() => editarProducto(producto)}
