@@ -192,6 +192,7 @@ export default async function handler(req, res) {
         access: "private",
         token: process.env.BLOB_READ_WRITE_TOKEN,
         contentType: "application/json",
+        allowOverwrite: true,
       }
     );
 
