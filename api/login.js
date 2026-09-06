@@ -32,8 +32,20 @@ export default function handler(req, res) {
 
   const { usuario, password } = req.body;
 
-  const adminUsuario = process.env.ADMIN_USER;
-  const adminPassword = process.env.ADMIN_PASSWORD;
+ const administradores = [
+  {
+    usuario: "admin1",
+    password: "clave1",
+  },
+  {
+    usuario: "admin2",
+    password: "clave2",
+  },
+  {
+    usuario: "admin3",
+    password: "clave3",
+  },
+];
   const jwtSecret = process.env.JWT_SECRET;
 
   if (!adminUsuario || !adminPassword || !jwtSecret) {
