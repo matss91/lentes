@@ -38,6 +38,13 @@ function Admin() {
       console.error("Error cargando productos:", error);
     }
   }
+///obtener vista previa
+function obtenerVistaPrevia(imagen) { if (!imagen) return null; return URL.createObjectURL(imagen); }
+
+///
+
+
+
 
   function cambiarImagen(index, archivo) {
     if (cargando) return;
