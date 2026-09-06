@@ -1,4 +1,4 @@
-```js
+
 import jwt from "jsonwebtoken";
 import bcrypt from "bcryptjs";
 import { get, put } from "@vercel/blob";
@@ -213,4 +213,4 @@ export default async function handler(req, res) {
     });
   }
 }
-```
+
