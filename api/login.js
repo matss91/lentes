@@ -46,7 +46,29 @@ export default function handler(req, res) {
     password: "clave3",
   },
 ];
-  const jwtSecret = process.env.JWT_SECRET;
+
+
+ const jwtSecret = process.env.JWT_SECRET;
+
+if (!jwtSecret) {
+  return res.status(500).json({
+    ok: false,
+    mensaje: "JWT_SECRET no está configurado",
+  });
+}
+
+const administrador = administradores.find(
+  (admin) =>
+    admin.usuario === usuario &&
+    admin.password === password
+);
+
+if (!administrador) {
+  return res.status(401).json({
+    ok: false,
+    mensaje: "Usuario o contraseña incorrectos",
+  });
+}
 
   if (!adminUsuario || !adminPassword || !jwtSecret) {
     return res.status(500).json({
@@ -71,10 +93,11 @@ export default function handler(req, res) {
   }
 
   // Crear token firmado
-  const token = jwt.sign(
-    {
-      rol: "admin",
-    },
+ const token = jwt.sign(
+  {
+    rol: "admin",
+    usuario: administrador.usuario,
+  },
     jwtSecret,
     {
       expiresIn: "2h",
