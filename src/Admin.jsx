@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-
+import CambiarPassword from "./CambiarPassword";
 const API_URL = import.meta.env.VITE_API_URL;
 
 function Admin() {
@@ -409,7 +409,7 @@ function obtenerVistaPrevia(imagen) { if (!imagen) return null; return URL.creat
       <h1>Panel de administrador</h1>
 
       <p>Login correcto. Estás dentro del panel.</p>
-
+<CambiarPassword />
       <h2>
         {editandoId !== null
           ? "Editar anteojo"
