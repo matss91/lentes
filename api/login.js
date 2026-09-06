@@ -1,7 +1,8 @@
 
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 
-export default function handler(req, res) {
+export default  async function handler(req, res) {
   // CORS
   res.setHeader(
     "Access-Control-Allow-Origin",
@@ -32,52 +33,59 @@ export default function handler(req, res) {
 
   const { usuario, password } = req.body;
 
- const administradores = [
-  {
-    usuario: "admin1",
-    password: "clave1",
-  },
-  {
-    usuario: "admin2",
-    password: "clave2",
-  },
-  {
-    usuario: "admin3",
-    password: "clave3",
-  },
-];
+  const administradores = [
+    {
+      usuario: process.env.ADMIN1_USER,
+      passwordHash: process.env.ADMIN1_PASSWORD_HASH,
+    },
+    {
+      usuario: process.env.ADMIN2_USER,
+      passwordHash: process.env.ADMIN2_PASSWORD_HASH,
+    },
+    {
+      usuario: process.env.ADMIN3_USER,
+      passwordHash: process.env.ADMIN3_PASSWORD_HASH,
+    },
+  ];
 
+  const jwtSecret = process.env.JWT_SECRET;
 
- const jwtSecret = process.env.JWT_SECRET;
+  if (!jwtSecret) {
+    return res.status(500).json({
+      ok: false,
+      mensaje: "JWT_SECRET no está configurado",
+    });
+  }
 
-if (!jwtSecret) {
-  return res.status(500).json({
-    ok: false,
-    mensaje: "JWT_SECRET no está configurado",
-  });
-}
+  const administrador = administradores.find(
+    (admin) => admin.usuario === usuario
+  );
 
-const administrador = administradores.find(
-  (admin) =>
-    admin.usuario === usuario &&
-    admin.password === password
-);
+  if (!administrador || !administrador.passwordHash) {
+    return res.status(401).json({
+      ok: false,
+      mensaje: "Usuario o contraseña incorrectos",
+    });
+  }
 
-if (!administrador) {
-  return res.status(401).json({
-    ok: false,
-    mensaje: "Usuario o contraseña incorrectos",
-  });
-}
+  const passwordCorrecta = await bcrypt.compare(
+    password,
+    administrador.passwordHash
+  );
 
-
+  if (!passwordCorrecta) {
+    return res.status(401).json({
+      ok: false,
+      mensaje: "Usuario o contraseña incorrectos",
+    });
+  }
 
   // Crear token firmado
- const token = jwt.sign(
-  {
-    rol: "admin",
-    usuario: administrador.usuario,
-  },
+  const token = jwt.sign(
+    {
+      rol: "admin",
+      usuario: administrador.usuario,
+    },
     jwtSecret,
     {
       expiresIn: "2h",
@@ -89,4 +97,6 @@ if (!administrador) {
     token,
   });
 }
+
+
 
