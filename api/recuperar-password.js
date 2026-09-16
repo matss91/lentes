@@ -103,7 +103,10 @@ console.log(
         admin.resetTokenExpires &&
         admin.resetTokenExpires > Date.now()
     );
-
+console.log(
+  "TOKEN ENCONTRADO:",
+  !!usuario
+);
     if (!usuario) {
       return res.status(400).json({
         ok: false,
