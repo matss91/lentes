@@ -11,7 +11,7 @@ function RestablecerPassword() {
 
   const params = new URLSearchParams(window.location.search);
   const token = params.get("token");
-
+console.log("TOKEN RECIBIDO:", token);
   const cambiarPassword = async (e) => {
     e.preventDefault();
 
