@@ -87,7 +87,12 @@ export default async function handler(req, res) {
       (admin) =>
         emails[admin.usuario]?.toLowerCase() === emailBuscado
     );
-
+console.log(
+  "RECUPERACION:",
+  "EMAIL RECIBIDO:", emailBuscado,
+  "USUARIO ENCONTRADO:", usuario?.usuario || "NINGUNO",
+  "EMAIL ASOCIADO:", usuario ? emails[usuario.usuario] : "NINGUNO"
+);
     // No revelar si el email existe
     if (!usuario) {
       return res.status(200).json({
