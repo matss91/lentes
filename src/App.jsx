@@ -11,8 +11,7 @@ import Carrito from "./Carrito";
 import RecuperarPassword from "./RecuperarPassword";
 import RestablecerPassword from "./RestablecerPassword";
 
-import RecuperarPassword from "./RecuperarPassword";
-import RestablecerPassword from "./RestablecerPassword";
+
 
 const API_URL = import.meta.env.VITE_API_URL;
 function App() {
