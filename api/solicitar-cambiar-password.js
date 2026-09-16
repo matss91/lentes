@@ -127,7 +127,12 @@ export default async function handler(req, res) {
         allowOverwrite: true,
       }
     );
-
+console.log(
+  "TOKEN GUARDADO PARA:",
+  usuario.usuario,
+  usuario.resetToken?.slice(0, 8),
+  usuario.resetTokenExpires
+);
     // ==========================================
     // 7. CREAR LINK
     // ==========================================
