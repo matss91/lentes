@@ -82,11 +82,15 @@ export default async function handler(req, res) {
     // ==========================================
 
     const emailBuscado = email.trim().toLowerCase();
-
+console.log("PRUEBA EMAIL RECUPERACION");
     const usuario = administradores.find(
       (admin) =>
         emails[admin.usuario]?.toLowerCase() === emailBuscado
     );
+
+
+
+    
 console.log(
   "RECUPERACION:",
   "EMAIL RECIBIDO:", emailBuscado,
