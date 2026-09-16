@@ -65,7 +65,12 @@ export default async function handler(req, res) {
       .createHash("sha256")
       .update(token)
       .digest("hex");
-
+console.log(
+  "RESET RECIBIDO - HASH:",
+  tokenHash.slice(0, 8),
+  "AHORA:",
+  Date.now()
+);
     // ==========================================
     // 4. LEER usuarios.json DESDE BLOB
     // ==========================================
