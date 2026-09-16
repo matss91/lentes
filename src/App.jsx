@@ -23,6 +23,7 @@ function App() {
   const [mostrarLogin, setMostrarLogin] = useState(false);
 const [mostrarAdmin, setMostrarAdmin] = useState(false);
 const [mostrarRecuperar, setMostrarRecuperar] = useState(false);
+const [mostrarRestablecer, setMostrarRestablecer] = useState(false);
 useEffect(() => {
   fetch(`${API_URL}/api/productos`)
     .then((res) => {
@@ -40,7 +41,13 @@ useEffect(() => {
     });
 }, []);
 
+useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
 
+  if (params.get("reset") === "1") {
+    setMostrarRestablecer(true);
+  }
+}, []);
   function agregarAlCarrito(producto) {
     setCarrito((carritoActual) => {
       const productoExistente = carritoActual.find(
@@ -130,7 +137,9 @@ if (ruta === "/recuperar-password") {
 if (ruta === "/restablecer-password") {
   return <RestablecerPassword />;
 }
-
+if (mostrarRestablecer) {
+  return <RestablecerPassword />;
+}
 if (mostrarAdmin) {
   return <Admin />;
 }
