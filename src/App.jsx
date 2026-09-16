@@ -8,8 +8,15 @@ import Admin from "./Admin";
 import { linksMercadoPago } from "./mercadoPago";
 import Carrito from "./Carrito";
 
+import RecuperarPassword from "./RecuperarPassword";
+import RestablecerPassword from "./RestablecerPassword";
+
+import RecuperarPassword from "./RecuperarPassword";
+import RestablecerPassword from "./RestablecerPassword";
+
 const API_URL = import.meta.env.VITE_API_URL;
 function App() {
+  const ruta = window.location.pathname;
   const [carrito, setCarrito] = useState([]);
   const [productoSeleccionado, setProductoSeleccionado] = useState(null);
   const [mostrarCheckout, setMostrarCheckout] = useState(false);
@@ -115,6 +122,15 @@ useEffect(() => {
     agregarAlCarrito(producto);
     setProductoSeleccionado(null);
   }
+
+if (ruta === "/recuperar-password") {
+  return <RecuperarPassword />;
+}
+
+if (ruta === "/restablecer-password") {
+  return <RestablecerPassword />;
+}
+
 if (mostrarAdmin) {
   return <Admin />;
 }

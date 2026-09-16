@@ -67,6 +67,14 @@ function Login({ onLogin }) {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
+        <button
+  type="button"
+  onClick={() => {
+    window.location.href = "/recuperar-password";
+  }}
+>
+  ¿Olvidaste tu contraseña?
+</button>
 
         <button type="submit" disabled={cargando}>
           {cargando ? "Ingresando..." : "Iniciar sesión"}
