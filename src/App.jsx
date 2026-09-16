@@ -22,6 +22,7 @@ function App() {
   const [productos, setProductos] = useState([]);
   const [mostrarLogin, setMostrarLogin] = useState(false);
 const [mostrarAdmin, setMostrarAdmin] = useState(false);
+const [mostrarRecuperar, setMostrarRecuperar] = useState(false);
 useEffect(() => {
   fetch(`${API_URL}/api/productos`)
     .then((res) => {
@@ -133,13 +134,23 @@ if (ruta === "/restablecer-password") {
 if (mostrarAdmin) {
   return <Admin />;
 }
-
+if (mostrarRecuperar) {
+  return (
+    <RecuperarPassword
+      onVolver={() => setMostrarRecuperar(false)}
+    />
+  );
+}
 if (mostrarLogin) {
   return (
     <Login
       onLogin={() => {
         setMostrarLogin(false);
         setMostrarAdmin(true);
+      }}
+      onRecuperar={() => {
+        setMostrarLogin(false);
+        setMostrarRecuperar(true);
       }}
     />
   );
