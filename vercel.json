@@ -16,6 +16,13 @@
     {
       "source": "/api/estado",
       "destination": "/api/correo-argentino.js"
-    }
+    },
+    {
+      "source": "/api/auth/forgot-password",
+      "destination": "/api/solicitar-cambiar-password.js"
+    },{
+  "source": "/api/auth/reset-password",
+  "destination": "/api/recuperar-password.js"
+}
   ]
 }
