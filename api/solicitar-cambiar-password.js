@@ -133,7 +133,7 @@ export default async function handler(req, res) {
     // ==========================================
 
     const link =
-      `${process.env.FRONTEND_URL}/restablecer-password?token=${token}`;
+  `${process.env.FRONTEND_URL}/?reset=1&token=${token}`;
 
     // ==========================================
     // 8. CONFIGURAR NODEMAILER
