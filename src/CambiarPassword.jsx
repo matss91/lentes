@@ -140,26 +140,21 @@ function CambiarPassword({ usuario, onVolver }) {
 
         <br />
 
-        <button type="submit" disabled={cargando}>
+         <button type="submit" disabled={cargando}>
           {cargando
             ? "Cambiando..."
             : "Cambiar contraseña"}
         </button>
-        <button type="submit" disabled={cargando}>
-  {cargando
-    ? "Cambiando..."
-    : "Cambiar contraseña"}
-</button>
 
-<br />
+        <br />
 
-<button
-  type="button"
-  onClick={onVolver}
-  disabled={cargando}
->
-  Volver
-</button>
+        <button
+          type="button"
+          onClick={onVolver}
+          disabled={cargando}
+        >
+          Volver
+        </button>
       </form>
 
       {mensaje && (
