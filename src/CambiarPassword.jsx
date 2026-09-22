@@ -3,7 +3,7 @@ import { useState } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-function CambiarPassword() {
+function CambiarPassword({ usuario, onVolver }) {
   const [passwordActual, setPasswordActual] = useState("");
   const [passwordNueva, setPasswordNueva] = useState("");
   const [confirmarPassword, setConfirmarPassword] = useState("");
@@ -28,12 +28,7 @@ function CambiarPassword() {
       return;
     }
 
-    const token = sessionStorage.getItem("adminToken");
-
-    if (!token) {
-      setError("No hay una sesión de administrador.");
-      return;
-    }
+   
 
     setCargando(true);
 
@@ -43,14 +38,14 @@ function CambiarPassword() {
         {
           method: "POST",
           headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+  "Content-Type": "application/json",
+},
           body: JSON.stringify({
-            passwordActual,
-            passwordNueva,
-            confirmarPassword,
-          }),
+  usuario,
+  passwordActual,
+  passwordNueva,
+  confirmarPassword,
+}),
         }
       );
 
@@ -81,6 +76,17 @@ function CambiarPassword() {
       <h2>Cambiar contraseña</h2>
 
       <form onSubmit={cambiarPassword}>
+        <div>
+  <label>Usuario</label>
+  <br />
+  <input
+    type="text"
+    value={usuario}
+    readOnly
+  />
+</div>
+
+<br />
         <div>
           <label>Contraseña actual</label>
           <br />
@@ -139,6 +145,21 @@ function CambiarPassword() {
             ? "Cambiando..."
             : "Cambiar contraseña"}
         </button>
+        <button type="submit" disabled={cargando}>
+  {cargando
+    ? "Cambiando..."
+    : "Cambiar contraseña"}
+</button>
+
+<br />
+
+<button
+  type="button"
+  onClick={onVolver}
+  disabled={cargando}
+>
+  Volver
+</button>
       </form>
 
       {mensaje && (
