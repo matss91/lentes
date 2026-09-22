@@ -78,7 +78,7 @@ function Login({ onLogin, onRecuperar, onCambiarPassword }) {
 
         <button
           type="button"
-          onClick={onCambiarPassword}
+         onClick={() => onCambiarPassword(usuario)}
         >
           Cambiar contraseña
         </button>

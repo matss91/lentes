@@ -25,6 +25,8 @@ const [mostrarAdmin, setMostrarAdmin] = useState(false);
 const [mostrarRecuperar, setMostrarRecuperar] = useState(false);
 const [mostrarRestablecer, setMostrarRestablecer] = useState(false);
 const [mostrarCambiarPassword, setMostrarCambiarPassword] = useState(false);
+
+const [usuarioParaCambiarPassword, setUsuarioParaCambiarPassword] = useState("");
 useEffect(() => {
   fetch(`${API_URL}/api/productos`)
     .then((res) => {
@@ -154,6 +156,7 @@ if (mostrarRecuperar) {
 if (mostrarCambiarPassword) {
   return (
     <CambiarPassword
+      usuario={usuarioParaCambiarPassword}
       onVolver={() => {
         setMostrarCambiarPassword(false);
         setMostrarLogin(true);
@@ -172,10 +175,16 @@ if (mostrarLogin) {
         setMostrarLogin(false);
         setMostrarRecuperar(true);
       }}
-      onCambiarPassword={() => {
-        setMostrarLogin(false);
-        setMostrarCambiarPassword(true);
-      }}
+   onCambiarPassword={(usuario) => {
+  if (!usuario.trim()) {
+    alert("Primero ingresá tu usuario.");
+    return;
+  }
+
+  setUsuarioParaCambiarPassword(usuario);
+  setMostrarLogin(false);
+  setMostrarCambiarPassword(true);
+}}
     />
   );
 }
