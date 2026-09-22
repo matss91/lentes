@@ -1,9 +1,10 @@
 
+
 import { useState } from "react";
 
 const API_URL = import.meta.env.VITE_API_URL;
 
-function Login({ onLogin, onRecuperar }) {
+function Login({ onLogin, onRecuperar, onCambiarPassword }) {
   const [usuario, setUsuario] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -67,12 +68,20 @@ function Login({ onLogin, onRecuperar }) {
           onChange={(e) => setPassword(e.target.value)}
           required
         />
- <button
-  type="button"
-  onClick={onRecuperar}
->
-  ¿Olvidaste tu contraseña?
-</button>
+
+        <button
+          type="button"
+          onClick={onRecuperar}
+        >
+          ¿Olvidaste tu contraseña?
+        </button>
+
+        <button
+          type="button"
+          onClick={onCambiarPassword}
+        >
+          Cambiar contraseña
+        </button>
 
         <button type="submit" disabled={cargando}>
           {cargando ? "Ingresando..." : "Iniciar sesión"}
