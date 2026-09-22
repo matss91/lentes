@@ -161,6 +161,10 @@ if (mostrarLogin) {
         setMostrarLogin(false);
         setMostrarRecuperar(true);
       }}
+      onCambiarPassword={() => {
+        setMostrarLogin(false);
+        setMostrarRecuperar(true);
+      }}
     />
   );
 }
