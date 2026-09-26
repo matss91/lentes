@@ -1,10 +1,9 @@
+
 import { useState } from "react";
 import emailjs from "@emailjs/browser";
 import "./Checkout.css";
-import { PAQUETE_ANTEOJO } from "./productos";
 import { crearPago } from "./services/mercadoPago";
-const API_URL = import.meta.env.VITE_API_URL;
-console.log("API_URL =", import.meta.env.VITE_API_URL);
+
 function Checkout({
   carrito,
   total,
@@ -15,79 +14,8 @@ function Checkout({
   const [email, setEmail] = useState("");
   const [telefono, setTelefono] = useState("");
   const [direccion, setDireccion] = useState("");
-  const [codigoPostal, setCodigoPostal] = useState("");
 
   const [enviando, setEnviando] = useState(false);
-  const [costoEnvio, setCostoEnvio] = useState(0);
-  const [calculandoEnvio, setCalculandoEnvio] = useState(false);
-
-  // ==========================================
-  // CALCULAR ENVÍO
-  // ==========================================
-
-  async function calcularCostoEnvio() {
-    if (!codigoPostal.trim()) {
-      alert("Ingresá tu código postal.");
-      return;
-    }
-
-    setCalculandoEnvio(true);
-
-    try {
-      const pesoTotal =
-        PAQUETE_ANTEOJO.peso * cantidadTotal;
-
-      const respuesta = await fetch(
-        `${API_URL}/api/cotizar-envio`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            codigoPostal: codigoPostal.trim(),
-            peso: pesoTotal,
-            alto: PAQUETE_ANTEOJO.alto,
-            ancho: PAQUETE_ANTEOJO.ancho,
-            largo: PAQUETE_ANTEOJO.largo,
-          }),
-        }
-      );
-
-      const datos = await respuesta.json();
-
-      console.log("Respuesta del backend:", datos);
-
-      if (!respuesta.ok) {
-        throw new Error(
-          datos.mensaje || "Error calculando envío"
-        );
-      }
-
-      if (
-        !datos.envio ||
-        typeof datos.envio.precio !== "number"
-      ) {
-        throw new Error(
-          "El backend no devolvió un precio de envío válido."
-        );
-      }
-
-      setCostoEnvio(datos.envio.precio);
-
-      alert(
-        `Envío calculado: $${datos.envio.precio.toLocaleString(
-          "es-AR"
-        )}`
-      );
-    } catch (error) {
-      console.error("Error calculando envío:", error);
-
-      alert("No se pudo consultar el envío.");
-    } finally {
-      setCalculandoEnvio(false);
-    }
-  }
 
   // ==========================================
   // CONTINUAR AL PAGO
@@ -100,8 +28,7 @@ function Checkout({
       !nombre.trim() ||
       !email.trim() ||
       !telefono.trim() ||
-      !direccion.trim() ||
-      !codigoPostal.trim()
+      !direccion.trim()
     ) {
       alert("Completá todos los datos.");
       return;
@@ -131,22 +58,19 @@ function Checkout({
     // DATOS DEL PEDIDO
     // ==========================================
 
-    const totalConEnvio = total + costoEnvio;
-
     const datosPedido = {
       nombre: nombre.trim(),
       email: email.trim(),
       telefono: telefono.trim(),
       direccion: direccion.trim(),
-      codigo_postal: codigoPostal.trim(),
 
       productos: productosTexto,
 
       subtotal: `$${total.toLocaleString("es-AR")}`,
 
-      envio: `$${costoEnvio.toLocaleString("es-AR")}`,
+      envio: "$0",
 
-      total: `$${totalConEnvio.toLocaleString("es-AR")}`,
+      total: `$${total.toLocaleString("es-AR")}`,
 
       cantidad: cantidadTotal,
     };
@@ -171,8 +95,7 @@ function Checkout({
         `Pedido enviado correctamente.\n\n` +
           `Productos: ${cantidadTotal}\n` +
           `Subtotal: $${total.toLocaleString("es-AR")}\n` +
-          `Envío: $${costoEnvio.toLocaleString("es-AR")}\n` +
-          `TOTAL: $${totalConEnvio.toLocaleString("es-AR")}\n\n` +
+          `TOTAL: $${total.toLocaleString("es-AR")}\n\n` +
           `¿Querés continuar a Mercado Pago?`
       );
 
@@ -181,13 +104,10 @@ function Checkout({
       }
 
       // ==========================================
-      // 3. CREAR PAGO DINÁMICO
+      // 3. CREAR PAGO
       // ==========================================
 
-      const pago = await crearPago(
-        carrito,
-        costoEnvio
-      );
+      const pago = await crearPago(carrito, 0);
 
       if (!pago.ok || !pago.link) {
         throw new Error(
@@ -286,29 +206,6 @@ function Checkout({
           placeholder="Tu dirección"
         />
 
-        <label>
-          Código Postal
-        </label>
-
-        <input
-          type="text"
-          value={codigoPostal}
-          onChange={(e) =>
-            setCodigoPostal(e.target.value)
-          }
-          placeholder="Ej: 1825"
-        />
-
-        <button
-          type="button"
-          onClick={calcularCostoEnvio}
-          disabled={calculandoEnvio}
-        >
-          {calculandoEnvio
-            ? "Calculando envío..."
-            : "Calcular envío"}
-        </button>
-
         {/* =====================================
             RESUMEN DEL PEDIDO
         ====================================== */}
@@ -343,18 +240,9 @@ function Checkout({
           </strong>
         </p>
 
-        <p>
-          Envío:{" "}
-          <strong>
-            ${costoEnvio.toLocaleString("es-AR")}
-          </strong>
-        </p>
-
         <h2>
           Total: $
-          {(total + costoEnvio).toLocaleString(
-            "es-AR"
-          )}
+          {total.toLocaleString("es-AR")}
         </h2>
 
         {/* =====================================
@@ -377,3 +265,4 @@ function Checkout({
 }
 
 export default Checkout;
+
