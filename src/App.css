@@ -446,3 +446,15 @@ footer {
 .instagram {
   background: #e1306c;
 }
+
+
+.hero {
+  width: 100%;
+  overflow: hidden;
+}
+
+.heroImage {
+  width: 100%;
+  display: block;
+  object-fit: cover;
+}

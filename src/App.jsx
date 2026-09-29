@@ -224,21 +224,7 @@ if (mostrarLogin) {
         />
       ) : (
         <>
-          <section className="hero">
-            <h1>
-              Anteojos que van con vos
-            </h1>
-
-           <p>
-  Todos nuestros modelos a $120.000
-</p>
-            <a
-              href="#productos"
-              className="heroButton"
-            >
-              Ver productos
-            </a>
-          </section>
+         <section className="hero"> <img src="/lenteslacoste.png" alt="Anteojos" className="heroImage" /> </section>
 
 <Productos
   productos={productos}
