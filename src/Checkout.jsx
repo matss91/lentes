@@ -21,65 +21,70 @@ function Checkout({
   // CONTINUAR AL PAGO
   // ==========================================
 
-  async function continuarAlPago(e) {
-    e.preventDefault();
+async function continuarAlPago(e) {
+  e.preventDefault();
 
-    if (
-      !nombre.trim() ||
-      !email.trim() ||
-      !telefono.trim() ||
-      !direccion.trim()
-    ) {
-      alert("Completá todos los datos.");
-      return;
+  if (
+    !nombre.trim() ||
+    !email.trim() ||
+    !telefono.trim() ||
+    !direccion.trim()
+  ) {
+    alert("Completá todos los datos.");
+    return;
+  }
+
+  if (carrito.length === 0) {
+    alert("El carrito está vacío.");
+    return;
+  }
+
+  setEnviando(true);
+
+  const productosTexto = carrito
+    .map(
+      (producto) =>
+        `${producto.nombre} × ${producto.cantidad} — $${(
+          producto.precio * producto.cantidad
+        ).toLocaleString("es-AR")}`
+    )
+    .join("\n");
+
+  const datosPedido = {
+    nombre: nombre.trim(),
+    email: email.trim(),
+    telefono: telefono.trim(),
+    direccion: direccion.trim(),
+
+    productos: productosTexto,
+
+    subtotal: `$${total.toLocaleString("es-AR")}`,
+
+    envio: "$0",
+
+    total: `$${total.toLocaleString("es-AR")}`,
+
+    cantidad: cantidadTotal,
+  };
+
+  try {
+    // ==========================================
+    // 1. CREAR PAGO EN MERCADO PAGO
+    // ==========================================
+
+    const pago = await crearPago(carrito, 0);
+
+    if (!pago.ok || !pago.link) {
+      throw new Error(
+        "Mercado Pago no devolvió un link de pago."
+      );
     }
 
-    if (carrito.length === 0) {
-      alert("El carrito está vacío.");
-      return;
-    }
-
-    setEnviando(true);
-
     // ==========================================
-    // PRODUCTOS PARA EMAILJS
+    // 2. ENVIAR EMAIL
     // ==========================================
-
-    const productosTexto = carrito
-      .map(
-        (producto) =>
-          `${producto.nombre} × ${producto.cantidad} — $${(
-            producto.precio * producto.cantidad
-          ).toLocaleString("es-AR")}`
-      )
-      .join("\n");
-
-    // ==========================================
-    // DATOS DEL PEDIDO
-    // ==========================================
-
-    const datosPedido = {
-      nombre: nombre.trim(),
-      email: email.trim(),
-      telefono: telefono.trim(),
-      direccion: direccion.trim(),
-
-      productos: productosTexto,
-
-      subtotal: `$${total.toLocaleString("es-AR")}`,
-
-      envio: "$0",
-
-      total: `$${total.toLocaleString("es-AR")}`,
-
-      cantidad: cantidadTotal,
-    };
 
     try {
-      // ==========================================
-      // 1. EMAILJS
-      // ==========================================
-
       await emailjs.send(
         "service_4cgf46y",
         "template_j3294ch",
@@ -87,54 +92,39 @@ function Checkout({
         "S8765mw_mc9-6_MSO"
       );
 
-      // ==========================================
-      // 2. CONFIRMAR PAGO
-      // ==========================================
-
-      const confirmar = window.confirm(
-        `Pedido enviado correctamente.\n\n` +
-          `Productos: ${cantidadTotal}\n` +
-          `Subtotal: $${total.toLocaleString("es-AR")}\n` +
-          `TOTAL: $${total.toLocaleString("es-AR")}\n\n` +
-          `¿Querés continuar a Mercado Pago?`
-      );
-
-      if (!confirmar) {
-        return;
-      }
-
-      // ==========================================
-      // 3. CREAR PAGO
-      // ==========================================
-
-      const pago = await crearPago(carrito, 0);
-
-      if (!pago.ok || !pago.link) {
-        throw new Error(
-          "Mercado Pago no devolvió un link de pago."
-        );
-      }
-
-      // ==========================================
-      // 4. IR A MERCADO PAGO
-      // ==========================================
-
-      window.location.href = pago.link;
-
-    } catch (error) {
+      console.log("Email enviado correctamente.");
+    } catch (emailError) {
       console.error(
-        "Error en el checkout:",
-        error
+        "Error al enviar el email:",
+        emailError
       );
 
-      alert(
-        "No se pudo completar el pedido o crear el pago.\n\n" +
-          "Revisá la consola para ver el error."
-      );
-    } finally {
-      setEnviando(false);
+      // El error del email NO bloquea el pago
     }
+
+    // ==========================================
+    // 3. IR A MERCADO PAGO
+    // ==========================================
+
+    window.location.href = pago.link;
+
+  } catch (error) {
+    console.error(
+      "Error al crear el pago:",
+      error
+    );
+
+    alert(
+      "No se pudo crear el pago.\n\n" +
+      "Revisá la consola para ver el error."
+    );
+  } finally {
+    setEnviando(false);
   }
+}
+
+
+
 
   return (
     <section className="checkout">
