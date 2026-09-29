@@ -84,28 +84,23 @@ async function continuarAlPago(e) {
     // 2. ENVIAR EMAIL
     // ==========================================
 
-   try {
-  const respuestaEmail = await emailjs.send(
-    "service_4cgf46y",
-    "template_j3294ch",
-    datosPedido,
-    "S8765mw_mc9-6_MSO"
-  );
+    try {
+      await emailjs.send(
+        "service_4cgf46y",
+        "template_j3294ch",
+        datosPedido,
+        "S8765mw_mc9-6_MSO"
+      );
 
-  console.log("EMAIL ENVIADO:", respuestaEmail);
+      console.log("Email enviado correctamente.");
+    } catch (emailError) {
+      console.error(
+        "Error al enviar el email:",
+        emailError
+      );
 
-  alert("El pedido fue enviado correctamente por email.");
-} catch (emailError) {
-  console.error("ERROR COMPLETO DE EMAILJS:", emailError);
-
-  alert(
-    "El pedido NO pudo enviarse por email.\n\n" +
-    "Código: " + (emailError?.status || "desconocido") +
-    "\nMensaje: " + (emailError?.text || emailError?.message || "desconocido")
-  );
-
-  return;
-}
+      // El error del email NO bloquea el pago
+    }
 
     // ==========================================
     // 3. IR A MERCADO PAGO
