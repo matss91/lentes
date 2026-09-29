@@ -458,3 +458,12 @@ footer {
   display: block;
   object-fit: cover;
 }
+
+@media (max-width: 768px) {
+  .hero {
+    min-height: 0;
+    height: 180px;
+    background-size: cover;
+    background-position: center;
+  }
+}
