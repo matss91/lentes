@@ -106,6 +106,15 @@ function ProductoDetalle({
           >
             Agregar al carrito
           </button>
+                   <a
+  href={`https://wa.me/549XXXXXXXXXX?text=${encodeURIComponent(
+    `Hola, quisiera hacer una consulta sobre la obra "${producto.titulo}".`
+  )}`}
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Consultar por WhatsApp
+</a>
 
         </div>
 
