@@ -114,7 +114,7 @@ function ProductoDetalle({
   target="_blank"
   rel="noopener noreferrer"
 >
-  <img src="/icono.png" alt="Chat de WhatsApp" width="40" height="40" />
+  <img src="icono.png" alt="Chat de WhatsApp" width="40" height="40" />
 </a>
         </div>
 
