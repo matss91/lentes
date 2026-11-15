@@ -103,8 +103,6 @@ function ProductoDetalle({
             type="button"
             className="detalleButton"
             onClick={agregarProducto}
-            width="40"
-            height="40"
           >
             Agregar al carrito
           </button>
@@ -116,7 +114,7 @@ function ProductoDetalle({
   target="_blank"
   rel="noopener noreferrer"
 >
-  <img src="/icono.png" alt="Chat de WhatsApp" width="40" height="40" />
+  Consultar por WhatsApp
 </a>
         </div>
 
