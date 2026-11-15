@@ -104,6 +104,7 @@ function ProductoDetalle({
             className="detalleButton"
             onClick={agregarProducto}
             width="40"
+            height="40"
           >
             Agregar al carrito
           </button>
