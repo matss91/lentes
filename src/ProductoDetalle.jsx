@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-
+import "./detalle.css";
 function ProductoDetalle({
   producto,
   onVolver,
@@ -106,7 +106,8 @@ function ProductoDetalle({
           >
             Agregar al carrito
           </button>
-                   <a className="detalleButton"
+                   <a 
+  className="boton-whatsapp"
   href={`https://wa.me/5491160185360?text=${encodeURIComponent(
     `Hola, quisiera hacer una consulta sobre la obra "${producto.titulo}".`
   )}`}
