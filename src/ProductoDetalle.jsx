@@ -1,6 +1,6 @@
 
 import { useState } from "react";
-
+import "./detalle.css";
 function ProductoDetalle({
   producto,
   onVolver,
