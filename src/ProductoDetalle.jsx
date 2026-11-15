@@ -99,15 +99,16 @@ function ProductoDetalle({
             {producto.descripcion}
           </p>
 
-          <button
-            type="button"
-            className="detalleButton"
-            onClick={agregarProducto}
-          >
-            Agregar al carrito
-          </button>
-<a 
-  className="boton-whatsapp"
+        <button
+  type="button"
+  className="boton-accion detalleButton"
+  onClick={agregarProducto}
+>
+  Agregar al carrito
+</button>
+
+<a
+  className="boton-accion boton-whatsapp"
   href={`https://wa.me/5491160185360?text=${encodeURIComponent(
     `Hola, quisiera hacer una consulta sobre la obra "${producto.nombre}".`
   )}`}
