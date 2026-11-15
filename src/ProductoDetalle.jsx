@@ -106,7 +106,10 @@ function ProductoDetalle({
           >
             Agregar al carrito
           </button>
-                   <a 
+    
+
+        </div>
+               <a 
   className="boton-whatsapp"
   href={`https://wa.me/5491160185360?text=${encodeURIComponent(
     `Hola, quisiera hacer una consulta sobre la obra "${producto.titulo}".`
@@ -116,9 +119,6 @@ function ProductoDetalle({
 >
   Consultar por WhatsApp
 </a>
-
-        </div>
-
       </div>
 
     </section>
