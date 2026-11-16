@@ -224,7 +224,7 @@ if (mostrarLogin) {
         />
       ) : (
         <>
-         <section className="hero"> <img src="/lenteslacoste.png" alt="Anteojos" className="heroImage" /> </section>
+         <section className="hero"> <img src="/lenteslacoste.jpg" alt="Anteojos" className="heroImage" /> </section>
 
 <Productos
   productos={productos}
