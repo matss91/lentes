@@ -7,7 +7,7 @@ function Productos({
     <main id="productos">
 
       <h2>
-        Nuestros anteojos
+        Nuestras obras
       </h2>
 
       <div className="productos">

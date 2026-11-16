@@ -205,7 +205,7 @@ if (mostrarLogin) {
 
       <header className="header">
         <div className="logo">
-          LENTES
+          Arte Mandalas
         </div>
 
         <div className="carrito">
