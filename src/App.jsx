@@ -245,7 +245,7 @@ if (mostrarLogin) {
 
       <footer>
         <p>
-          © since 2026 
+          © Since 2026 
         </p>
 
         <p>
