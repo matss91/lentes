@@ -245,7 +245,7 @@ if (mostrarLogin) {
 
       <footer>
         <p>
-          © 2026 LENTES
+          © since 2026 
         </p>
 
         <p>
