@@ -76,6 +76,10 @@ Total: $${total}
             {" "}
             Finalizar compra{" "}
           </button>{" "}
+          <br>
+          </br>
+          <br>
+          </br>
           <a
   className="boton-whatsapp"
   href={`https://wa.me/5491160185360?text=${encodeURIComponent(mensaje)}`}
