@@ -55,10 +55,16 @@ function Carrito({
               </div>
             ))}{" "}
           </div>{" "}
-
-
-
-const mensaje = `
+          <div className="total">
+            {" "}
+            <span> Total </span>{" "}
+            <strong> $ {total.toLocaleString("es-AR")} </strong>{" "}
+          </div>{" "}
+          <button type="button" className="pagar" onClick={onPagar}>
+            {" "}
+            Finalizar compra{" "}
+          </button>{" "}
+          const mensaje = `
 Hola! Quisiera realizar un pedido:
 
 ${carrito.map(producto =>
@@ -75,18 +81,6 @@ Total: $${total}
 >
   Finalizar pedido por WhatsApp
 </a>
-
-
-
-          <div className="total">
-            {" "}
-            <span> Total </span>{" "}
-            <strong> $ {total.toLocaleString("es-AR")} </strong>{" "}
-          </div>{" "}
-          <button type="button" className="pagar" onClick={onPagar}>
-            {" "}
-            Finalizar compra{" "}
-          </button>{" "}
         </>
       )}{" "}
     </section>
