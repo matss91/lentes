@@ -55,6 +55,29 @@ function Carrito({
               </div>
             ))}{" "}
           </div>{" "}
+
+
+
+const mensaje = `
+Hola! Quisiera realizar un pedido:
+
+${carrito.map(producto =>
+  `- ${producto.nombre} x${producto.cantidad} — $${producto.precio * producto.cantidad}`
+).join("\n")}
+
+Total: $${total}
+`;
+
+<a
+  href={`https://wa.me/5491160185360?text=${encodeURIComponent(mensaje)}`}
+  target="_blank"
+  rel="noopener noreferrer"
+>
+  Finalizar pedido por WhatsApp
+</a>
+
+
+
           <div className="total">
             {" "}
             <span> Total </span>{" "}
