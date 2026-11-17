@@ -110,7 +110,9 @@ function ProductoDetalle({
 <a
   className="boton-accion boton-whatsapp"
   href={`https://wa.me/5491160185360?text=${encodeURIComponent(
-    `Hola, quisiera hacer una consulta sobre la obra "${producto.nombre}".`
+   `Hola! Estoy interesado/a en la obra "${producto.nombre}" 
+con un precio de $${Number(producto.precio).toLocaleString("es-AR")}. 
+Quisiera consultar sobre su disponibilidad y compra.`
   )}`}
   target="_blank"
   rel="noopener noreferrer"
