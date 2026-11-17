@@ -1,3 +1,6 @@
+
+import "./carrito.css";
+
 function Carrito({
   carrito,
   cantidadTotal,
