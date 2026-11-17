@@ -7,6 +7,15 @@ function Carrito({
   onEliminar,
   onPagar,
 }) {
+  const mensaje = `
+Hola! Quisiera realizar un pedido:
+
+${carrito.map(producto =>
+  `- ${producto.nombre} x${producto.cantidad} — $${producto.precio * producto.cantidad}`
+).join("\n")}
+
+Total: $${total}
+`;
   return (
     <section className="carritoSection">
       {" "}
@@ -64,17 +73,8 @@ function Carrito({
             {" "}
             Finalizar compra{" "}
           </button>{" "}
-          const mensaje = `
-Hola! Quisiera realizar un pedido:
-
-${carrito.map(producto =>
-  `- ${producto.nombre} x${producto.cantidad} — $${producto.precio * producto.cantidad}`
-).join("\n")}
-
-Total: $${total}
-`;
-
-<a
+          <a
+  className="boton-whatsapp"
   href={`https://wa.me/5491160185360?text=${encodeURIComponent(mensaje)}`}
   target="_blank"
   rel="noopener noreferrer"
