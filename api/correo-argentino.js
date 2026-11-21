@@ -1,7 +1,12 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
-import { MercadoPagoConfig, Preference } from "mercadopago";
+import {
+  MercadoPagoConfig,
+  Preference,
+  WebhookSignatureValidator,
+  InvalidWebhookSignatureError,
+} from "mercadopago";
 import { get } from "@vercel/blob";
 
 const app = express();
@@ -78,6 +83,64 @@ app.get("/api/probar-blob", async (req, res) => {
       ok: false,
       mensaje: "No se pudo leer productos.json",
       error: error.message,
+    });
+  }
+});
+
+
+// Prueba de funcionamiento del endpoint
+app.get("/api/webhook-mercadopago", (req, res) => {
+  res.json({
+    ok: true,
+    mensaje: "Endpoint de Mercado Pago funcionando",
+  });
+});
+
+// Recepción y validación de notificaciones
+app.post("/api/webhook-mercadopago", (req, res) => {
+  const secret = process.env.MP_WEBHOOK_SECRET;
+
+  if (!secret) {
+    return res.status(503).json({
+      ok: false,
+      mensaje: "Falta configurar MP_WEBHOOK_SECRET",
+    });
+  }
+
+  const dataId = req.query["data.id"] || req.query.data_id;
+
+  if (!dataId) {
+    return res.status(400).json({
+      ok: false,
+      mensaje: "Falta el ID del pago",
+    });
+  }
+
+  try {
+    WebhookSignatureValidator.validate({
+      xSignature: req.headers["x-signature"],
+      xRequestId: req.headers["x-request-id"],
+      dataId: String(dataId),
+      secret,
+    });
+
+    return res.status(200).json({
+      ok: true,
+      mensaje: "Notificación recibida y firma válida",
+    });
+  } catch (error) {
+    if (error instanceof InvalidWebhookSignatureError) {
+      return res.status(401).json({
+        ok: false,
+        mensaje: "Firma inválida",
+      });
+    }
+
+    console.error("Error validando webhook:", error);
+
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error interno",
     });
   }
 });

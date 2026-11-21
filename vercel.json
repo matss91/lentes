@@ -26,6 +26,9 @@
 },{
   "source": "/api/probar-blob",
   "destination": "/api/correo-argentino.js"
+},{
+  "source": "/api/webhook-mercadopago",
+  "destination": "/api/correo-argentino.js"
 }
   ]
 }
