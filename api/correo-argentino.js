@@ -8,7 +8,7 @@ import {
   InvalidWebhookSignatureError,
 } from "mercadopago";
 import { get } from "@vercel/blob";
-
+import clientPromise from "./mongodb.js";
 const app = express();
 
 const client = new MercadoPagoConfig({
@@ -280,6 +280,26 @@ app.get("/api/buscar-pago", async (req, res) => {
   } catch (error) {
     console.error(error);
     res.status(500).json({ ok: false });
+  }
+});
+
+app.get("/api/probar-mongodb", async (req, res) => {
+  try {
+    const client = await clientPromise;
+
+    await client.db("admin").command({ ping: 1 });
+
+    res.json({
+      ok: true,
+      mensaje: "Conexión con MongoDB correcta",
+    });
+  } catch (error) {
+    console.error("Error MongoDB:", error);
+
+    res.status(500).json({
+      ok: false,
+      mensaje: "Error conectando con MongoDB",
+    });
   }
 });
 
