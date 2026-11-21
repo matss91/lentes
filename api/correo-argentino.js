@@ -1,6 +1,9 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
+import clientPromise from "./api/mongodb.js";
+import { randomUUID } from "node:crypto";
+
 import {
   MercadoPagoConfig,
   Preference,
@@ -188,64 +191,182 @@ app.post("/api/cotizar-envio", (req, res) => {
   });
 });
 
-app.post("/api/crear-preferencia", async (req, res) => {
-  try {
-    const { productos, envio } = req.body;
 
-    if (!productos || productos.length === 0) {
+app.post("/api/crear-preferencia", async (req, res) => {
+  let clientMongo;
+  let reservaId;
+  let obrasReservadas = [];
+
+  try {
+    const { productos, envio = 0 } = req.body;
+
+    if (!Array.isArray(productos) || productos.length === 0) {
       return res.status(400).json({
         ok: false,
         mensaje: "No hay productos en el carrito",
       });
     }
 
-    const items = productos.map((producto) => ({
-      title: producto.nombre,
-      quantity: Number(producto.cantidad),
-      unit_price: Number(producto.precio),
-      currency_id: "ARS",
-    }));
+    // Cada obra es única: cantidad máxima 1
+    const ids = productos.map(p => Number(p.id));
 
-    if (Number(envio) > 0) {
-      items.push({
-        title: "Envío",
-        quantity: 1,
-        unit_price: Number(envio),
-        currency_id: "ARS",
+    if (
+      ids.some(id => !Number.isInteger(id) || id <= 0) ||
+      new Set(ids).size !== ids.length ||
+      productos.some(p => Number(p.cantidad) !== 1)
+    ) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "Hay productos duplicados o cantidades inválidas",
       });
     }
 
+    const costoEnvio = Number(envio);
+
+    if (!Number.isFinite(costoEnvio) || costoEnvio < 0) {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "Envío inválido",
+      });
+    }
+
+    // Conectar con MongoDB
+    clientMongo = await clientPromise;
+    const db = clientMongo.db();
+    const obras = db.collection("obras");
+
+    reservaId = randomUUID();
+
+    const ahora = new Date();
+    const reservaHasta = new Date(
+      ahora.getTime() + 20 * 60 * 1000
+    );
+
+    const items = [];
+
+    // Reservar cada obra de manera atómica
+    for (const id of ids) {
+
+      const obra = await obras.findOne({ id });
+
+      if (!obra) {
+        throw new Error(`No existe la obra ${id}`);
+      }
+
+      const resultado = await obras.updateOne(
+        {
+          id,
+          $or: [
+            { estado: "disponible" },
+            {
+              estado: "reservado",
+              reservaHasta: { $lte: ahora }
+            }
+          ]
+        },
+        {
+          $set: {
+            estado: "reservado",
+            reservaId,
+            reservaHasta
+          }
+        }
+      );
+
+      if (resultado.modifiedCount !== 1) {
+        throw new Error(
+          `La obra "${obra.nombre}" ya no está disponible`
+        );
+      }
+
+      obrasReservadas.push(id);
+
+      items.push({
+        title: obra.nombre,
+        quantity: 1,
+        unit_price: Number(obra.precio),
+        currency_id: "ARS"
+      });
+    }
+
+    // Agregar envío
+    if (costoEnvio > 0) {
+      items.push({
+        title: "Envío",
+        quantity: 1,
+        unit_price: costoEnvio,
+        currency_id: "ARS"
+      });
+    }
+
+    // Crear preferencia
     const preference = new Preference(client);
 
     const resultado = await preference.create({
       body: {
         items,
 
+        external_reference: reservaId,
+
+        metadata: {
+          reserva_id: reservaId,
+          obra_ids: ids
+        },
+
+        expires: true,
+        expiration_date_from: ahora.toISOString(),
+        expiration_date_to: reservaHasta.toISOString(),
+
         back_urls: {
           success: "https://lentes-mocha.vercel.app",
           failure: "https://lentes-mocha.vercel.app",
-          pending: "https://lentes-mocha.vercel.app",
+          pending: "https://lentes-mocha.vercel.app"
         },
 
-        auto_return: "approved",
-      },
+        auto_return: "approved"
+      }
     });
 
-    res.json({
+    return res.json({
       ok: true,
       id: resultado.id,
       link: resultado.init_point,
+      reservaId
     });
 
   } catch (error) {
-    console.error("Error creando preferencia:", error);
 
-    res.status(500).json({
+    console.error("ERROR CREANDO PREFERENCIA:", error);
+
+    // Liberar las reservas si falla la operación
+    if (clientMongo && reservaId && obrasReservadas.length > 0) {
+      try {
+        await clientMongo.db().collection("obras").updateMany(
+          {
+            id: { $in: obrasReservadas },
+            reservaId
+          },
+          {
+            $set: { estado: "disponible" },
+            $unset: {
+              reservaId: "",
+              reservaHasta: ""
+            }
+          }
+        );
+      } catch (errorLiberacion) {
+        console.error("ERROR LIBERANDO RESERVAS:", errorLiberacion);
+      }
+    }
+
+    return res.status(400).json({
       ok: false,
-      mensaje: "No se pudo crear el pago",
+      mensaje: error.message
     });
   }
 });
+
+
 
 app.get("/api/buscar-pago", async (req, res) => {
   try {
