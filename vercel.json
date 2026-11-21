@@ -32,6 +32,9 @@
 },{
   "source": "/api/buscar-pago",
   "destination": "/api/correo-argentino.js"
+},{
+  "source": "/api/probar-mongodb",
+  "destination": "/api/correo-argentino.js"
 }
   ]
 }
