@@ -247,4 +247,40 @@ app.post("/api/crear-preferencia", async (req, res) => {
   }
 });
 
+app.get("/api/buscar-pago", async (req, res) => {
+  try {
+    const respuesta = await fetch(
+      "https://api.mercadopago.com/v1/payments/search?sort=date_created&criteria=desc&limit=30",
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`,
+        },
+      }
+    );
+
+    const datos = await respuesta.json();
+
+    if (!respuesta.ok) {
+      return res.status(respuesta.status).json({
+        ok: false,
+        mensaje: "Error consultando Mercado Pago",
+      });
+    }
+
+    res.json({
+      ok: true,
+      pagos: datos.results.map((p) => ({
+        id: p.id,
+        estado: p.status,
+        descripcion: p.description,
+        fecha: p.date_created,
+        monto: p.transaction_amount,
+      })),
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ ok: false });
+  }
+});
+
 export default app;

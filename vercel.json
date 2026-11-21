@@ -29,6 +29,9 @@
 },{
   "source": "/api/webhook-mercadopago",
   "destination": "/api/correo-argentino.js"
+},{
+  "source": "/api/buscar-pago",
+  "destination": "/api/correo-argentino.js"
 }
   ]
 }
