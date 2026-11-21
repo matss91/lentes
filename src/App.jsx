@@ -28,19 +28,23 @@ const [mostrarCambiarPassword, setMostrarCambiarPassword] = useState(false);
 
 const [usuarioParaCambiarPassword, setUsuarioParaCambiarPassword] = useState("");
 useEffect(() => {
-  fetch(`${API_URL}/api/productos`)
+  fetch(`${API_URL}/api/obras`)
     .then((res) => {
       if (!res.ok) {
-        throw new Error("No se pudieron cargar los productos");
+        throw new Error("No se pudieron cargar las obras");
       }
 
       return res.json();
     })
     .then((data) => {
-      setProductos(data);
+      if (!data.ok || !Array.isArray(data.obras)) {
+        throw new Error("La respuesta de MongoDB no es válida");
+      }
+
+      setProductos(data.obras);
     })
     .catch((error) => {
-      console.error("Error cargando productos:", error);
+      console.error("Error cargando obras:", error);
     });
 }, []);
 
