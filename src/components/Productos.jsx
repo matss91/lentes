@@ -1,3 +1,4 @@
+
 function Productos({
   productos,
   onVerDetalle,
@@ -18,17 +19,17 @@ function Productos({
             key={producto.id}
           >
 
-<img
-  src={
-    producto.imagenes[0]?.startsWith("https://") &&
-    producto.imagenes[0].includes(".private.blob.vercel-storage.com")
-      ? `${import.meta.env.VITE_API_URL}/api/imagen?url=${encodeURIComponent(
-          producto.imagenes[0]
-        )}`
-      : producto.imagenes[0]
-  }
-  alt={producto.nombre}
-/>
+            <img
+              src={
+                producto.imagenes[0]?.startsWith("https://") &&
+                producto.imagenes[0].includes(".private.blob.vercel-storage.com")
+                  ? `${import.meta.env.VITE_API_URL}/api/imagen?url=${encodeURIComponent(
+                      producto.imagenes[0]
+                    )}`
+                  : producto.imagenes[0]
+              }
+              alt={producto.nombre}
+            />
 
             <div className="productoInfo">
 
@@ -38,28 +39,28 @@ function Productos({
 
               <p className="precio">
                 $
-                {producto.precio.toLocaleString(
-                  "es-AR"
-                )}
+                {producto.precio.toLocaleString("es-AR")}
               </p>
 
               <button
                 type="button"
-                onClick={() =>
-                  onVerDetalle(producto)
-                }
+                onClick={() => onVerDetalle(producto)}
               >
                 Ver detalle
               </button>
 
-              <button
-                type="button"
-                onClick={() =>
-                  onAgregar(producto)
-                }
-              >
-                Agregar al carrito
-              </button>
+              {producto.estado === "disponible" ? (
+                <button
+                  type="button"
+                  onClick={() => onAgregar(producto)}
+                >
+                  Agregar al carrito
+                </button>
+              ) : (
+                <p className="productoVendido">
+                  VENDIDA
+                </p>
+              )}
 
             </div>
 

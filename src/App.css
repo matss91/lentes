@@ -459,6 +459,15 @@ footer {
   object-fit: cover;
 }
 
+.productoVendido {
+  background: #777;
+  color: white;
+  padding: 10px;
+  text-align: center;
+  font-weight: bold;
+  border-radius: 5px;
+}
+
 @media (max-width: 768px) {
   .hero {
     min-height: 0;
@@ -467,3 +476,4 @@ footer {
     background-position: center;
   }
 }
+
