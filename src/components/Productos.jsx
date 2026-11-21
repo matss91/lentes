@@ -36,7 +36,15 @@ function Productos({
               <h3>
                 {producto.nombre}
               </h3>
-
+<p className={
+  producto.estado === "disponible"
+    ? "estadoDisponible"
+    : "estadoVendido"
+}>
+  {producto.estado === "disponible"
+    ? "DISPONIBLE"
+    : "VENDIDA"}
+</p>
               <p className="precio">
                 $
                 {producto.precio.toLocaleString("es-AR")}
