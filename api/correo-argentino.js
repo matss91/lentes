@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 import "dotenv/config";
-import clientPromise from "./api/mongodb.js";
+
 import { randomUUID } from "node:crypto";
 
 import {
