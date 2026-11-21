@@ -23,6 +23,9 @@
     },{
   "source": "/api/auth/reset-password",
   "destination": "/api/recuperar-password.js"
+},{
+  "source": "/api/probar-blob",
+  "destination": "/api/correo-argentino.js"
 }
   ]
 }
