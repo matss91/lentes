@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import "dotenv/config";
 import { MercadoPagoConfig, Preference } from "mercadopago";
+import { get } from "@vercel/blob";
 
 const app = express();
 
@@ -43,6 +44,44 @@ app.get("/api/estado", (req, res) => {
     mensaje: "Backend de Correo Argentino funcionando",
   });
 });
+
+
+app.get("/api/probar-blob", async (req, res) => {
+  try {
+    const archivo = await get("productos/productos.json", {
+      access: "private",
+    });
+
+    if (!archivo || !archivo.stream) {
+      return res.status(404).json({
+        ok: false,
+        mensaje: "No se encontró productos.json",
+      });
+    }
+
+    const contenido = await new Response(archivo.stream).text();
+    const productos = JSON.parse(contenido);
+
+    if (!Array.isArray(productos)) {
+      throw new Error("El archivo no contiene una lista de productos");
+    }
+
+    res.json({
+      ok: true,
+      mensaje: "Conexión con Blob correcta",
+      cantidadProductos: productos.length,
+    });
+  } catch (error) {
+    console.error("Error leyendo Blob:", error);
+
+    res.status(500).json({
+      ok: false,
+      mensaje: "No se pudo leer productos.json",
+      error: error.message,
+    });
+  }
+});
+
 
 app.post("/api/cotizar-envio", (req, res) => {
   const {
