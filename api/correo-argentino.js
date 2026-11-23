@@ -25,25 +25,9 @@ const dominiosPermitidos = [
 
 app.use(
   cors({
-    origin: (origin, callback) => {
-      const esTuVercel =
-        /^https:\/\/[a-z0-9-]+-matss91s-projects\.vercel\.app$/.test(
-          origin || ""
-        );
-
-      if (
-        !origin ||
-        dominiosPermitidos.includes(origin) ||
-        esTuVercel
-      ) {
-        return callback(null, true);
-      }
-
-      return callback(new Error("Origen no autorizado por CORS"));
-    },
+    origin: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
   })
 );
 
