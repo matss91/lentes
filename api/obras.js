@@ -1,48 +1,26 @@
 
-import clientPromise from "./mongodb.js";
+const dominiosPermitidos = [
+  "https://espacioarte.vercel.app",
+  "https://lentes-mocha.vercel.app",
+];
 
-export default async function handler(req, res) {
-  // CORS
-  res.setHeader("Access-Control-Allow-Origin", req.headers.origin || "*");
-  res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
-  res.setHeader("Vary", "Origin");
+const esTuVercel = /^https:\/\/[a-z0-9-]+-matss91s-projects\.vercel\.app$/.test(
+  req.headers.origin || ""
+);
 
-  // Preflight
-  if (req.method === "OPTIONS") {
-    return res.status(204).end();
-  }
+const origin = req.headers.origin;
 
-  if (req.method !== "GET") {
-    return res.status(405).json({
-      ok: false,
-      mensaje: "Método no permitido",
-    });
-  }
+if (
+  origin &&
+  (dominiosPermitidos.includes(origin) || esTuVercel)
+) {
+  res.setHeader("Access-Control-Allow-Origin", origin);
+}
 
-  try {
-    const client = await clientPromise;
-    const db = client.db();
+res.setHeader("Access-Control-Allow-Methods", "GET, OPTIONS");
+res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
+res.setHeader("Vary", "Origin");
 
-    const obras = await db
-      .collection("obras")
-      .find({})
-      .sort({ id: 1 })
-      .toArray();
-
-    return res.status(200).json({
-      ok: true,
-      total: obras.length,
-      obras,
-    });
-
-  } catch (error) {
-    console.error("ERROR CONSULTANDO OBRAS:", error);
-
-    return res.status(500).json({
-      ok: false,
-      mensaje: "Error consultando MongoDB",
-      error: error.message,
-    });
-  }
+if (req.method === "OPTIONS") {
+  return res.status(204).end();
 }
