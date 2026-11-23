@@ -18,16 +18,30 @@ const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN,
 });
 
+const dominiosPermitidos = [
+  "https://espacioarte.vercel.app",
+  "https://lentes-mocha.vercel.app",
+  "https://lentes-git-master-matss91s-projects.vercel.app",
+];
+
 app.use(
   cors({
-    origin: [
-      "https://lentes-mocha.vercel.app",
-      "https://lentes-git-master-matss91s-projects.vercel.app",
-    ],
+    origin: (origin, callback) => {
+      if (
+        !origin ||
+        dominiosPermitidos.includes(origin) ||
+        /^https:\/\/lentes-[a-z0-9]+-matss91s-projects\.vercel\.app$/.test(origin)
+      ) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Origen no autorizado por CORS"));
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
 app.use(express.json());
 
 function calcularCostoEnvio({ peso, alto, ancho, largo }) {
@@ -101,209 +115,7 @@ app.get("/api/webhook-mercadopago", (req, res) => {
 
 // Recepción y validación de notificaciones
 
-app.post("/api/webhook-mercadopago", async (req, res) => {
-  const secret = process.env.MP_WEBHOOK_SECRET;
 
-  if (!secret) {
-    return res.status(503).json({
-      ok: false,
-      mensaje: "Falta configurar MP_WEBHOOK_SECRET"
-    });
-  }
-
-  const dataId =
-    req.query["data.id"] ||
-    req.query.data_id ||
-    req.body?.data?.id;
-
-  if (!dataId) {
-    return res.status(400).json({
-      ok: false,
-      mensaje: "Falta el ID del pago"
-    });
-  }
-
-  try {
-    // 1. Validar firma de Mercado Pago
-    WebhookSignatureValidator.validate({
-      xSignature: req.headers["x-signature"],
-      xRequestId: req.headers["x-request-id"],
-      dataId: String(dataId),
-      secret
-    });
-
-    // 2. Consultar el pago directamente a Mercado Pago
-    const respuesta = await fetch(
-      `https://api.mercadopago.com/v1/payments/${encodeURIComponent(dataId)}`,
-      {
-        headers: {
-          Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}`
-        }
-      }
-    );
-
-    if (!respuesta.ok) {
-      throw new Error("No se pudo consultar el pago en Mercado Pago");
-    }
-
-    const pago = await respuesta.json();
-
-    // 3. Comprobar que el pago esté aprobado
-    if (pago.status !== "approved") {
-      return res.status(200).json({
-        ok: true,
-        mensaje: "Pago recibido, todavía no está aprobado",
-        estado: pago.status
-      });
-    }
-
-    // 4. Recuperar datos de la reserva
-    const reservaId = pago.external_reference;
-    const obraIds = pago.metadata?.obra_ids;
-
-    if (
-      !reservaId ||
-      !Array.isArray(obraIds) ||
-      obraIds.length === 0
-    ) {
-      throw new Error("El pago no contiene datos válidos de la reserva");
-    }
-
-    const ids = obraIds.map(Number);
-
-    if (
-      ids.some(id => !Number.isInteger(id) || id <= 0) ||
-      new Set(ids).size !== ids.length
-    ) {
-      throw new Error("Identificadores de obras inválidos");
-    }
-
-    const clientMongo = await clientPromise;
-    const db = clientMongo.db();
-    const obras = db.collection("obras");
-
-    const pagoId = String(pago.id);
-
-    // Se utiliza la fecha de aprobación, no la fecha
-    // en que llegó la notificación.
-    const fechaAprobacion = new Date(pago.date_approved);
-
-    if (Number.isNaN(fechaAprobacion.getTime())) {
-      throw new Error("Fecha de aprobación inválida");
-    }
-
-    // 5. Actualizar todas las obras dentro de una transacción
-    const session = clientMongo.startSession();
-
-    try {
-      let resultadoOperacion;
-
-      await session.withTransaction(async () => {
-
-        // Evitar procesar dos veces la misma notificación
-        const yaVendidas = await obras.countDocuments(
-          {
-            id: { $in: ids },
-            reservaId,
-            estado: "vendido",
-            pagoId
-          },
-          { session }
-        );
-
-        if (yaVendidas === ids.length) {
-          resultadoOperacion = "duplicado";
-          return;
-        }
-
-        const resultado = await obras.updateMany(
-          {
-            id: { $in: ids },
-            estado: "reservado",
-            reservaId,
-            reservaHasta: { $gt: fechaAprobacion }
-          },
-          {
-            $set: {
-              estado: "vendido",
-              vendidoEn: fechaAprobacion,
-              pagoId
-            },
-            $unset: {
-              reservaHasta: ""
-            }
-          },
-          { session }
-        );
-
-        // Si falta alguna obra, cancelar toda la transacción
-        if (resultado.modifiedCount !== ids.length) {
-          const error = new Error(
-            "La reserva ya no es válida o alguna obra no pertenece a ella"
-          );
-
-          error.code = "RESERVA_NO_VALIDA";
-          throw error;
-        }
-
-        resultadoOperacion = "vendido";
-      });
-
-      if (resultadoOperacion === "duplicado") {
-        return res.status(200).json({
-          ok: true,
-          mensaje: "Pago ya procesado anteriormente"
-        });
-      }
-
-      return res.status(200).json({
-        ok: true,
-        mensaje: "Pago aprobado. Obras marcadas como vendidas",
-        reservaId,
-        obras: ids
-      });
-
-    } catch (error) {
-
-      if (error.code === "RESERVA_NO_VALIDA") {
-        console.error(
-          "PAGO APROBADO CON RESERVA NO VÁLIDA:",
-          error.message,
-          reservaId
-        );
-
-        // No marcar como vendido algo que pudo haberse
-        // reservado nuevamente. Requiere revisión.
-        return res.status(200).json({
-          ok: true,
-          mensaje: "Pago aprobado, pero requiere revisión de la reserva",
-          reservaId
-        });
-      }
-
-      throw error;
-
-    } finally {
-      await session.endSession();
-    }
-
-  } catch (error) {
-
-    if (error instanceof InvalidWebhookSignatureError) {
-      return res.status(401).json({
-        ok: false,
-        mensaje: "Firma inválida"
-      });
-    }
-
-    console.error("ERROR WEBHOOK MERCADO PAGO:", error);
-
-    return res.status(500).json({
-      ok: false,
-      mensaje: "Error procesando notificación"
-    });
-  }
-});
 
 
 app.post("/api/cotizar-envio", (req, res) => {
