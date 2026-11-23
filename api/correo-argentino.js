@@ -21,16 +21,20 @@ const client = new MercadoPagoConfig({
 const dominiosPermitidos = [
   "https://espacioarte.vercel.app",
   "https://lentes-mocha.vercel.app",
-  "https://lentes-git-master-matss91s-projects.vercel.app",
 ];
 
 app.use(
   cors({
     origin: (origin, callback) => {
+      const esTuVercel =
+        /^https:\/\/[a-z0-9-]+-matss91s-projects\.vercel\.app$/.test(
+          origin || ""
+        );
+
       if (
         !origin ||
         dominiosPermitidos.includes(origin) ||
-        /^https:\/\/lentes-[a-z0-9]+-matss91s-projects\.vercel\.app$/.test(origin)
+        esTuVercel
       ) {
         return callback(null, true);
       }
@@ -39,6 +43,7 @@ app.use(
     },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
   })
 );
 
