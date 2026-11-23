@@ -25,13 +25,34 @@ const dominiosPermitidos = [
 
 app.use(
   cors({
-    origin: true,
+    origin: function (origin, callback) {
+      // Permitir solicitudes sin Origin (por ejemplo, servidor a servidor)
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      // Dominios de producción
+      if (dominiosPermitidos.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // Deployments Preview de tu equipo de Vercel
+      const esPreviewVercel =
+        /^https:\/\/[a-z0-9-]+-matss91s-projects\.vercel\.app$/.test(origin);
+
+      if (esPreviewVercel) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("Origen no permitido por CORS"));
+    },
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
 app.use(express.json());
+
 
 function calcularCostoEnvio({ peso, alto, ancho, largo }) {
   const volumen = alto * ancho * largo;
