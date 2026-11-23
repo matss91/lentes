@@ -475,9 +475,9 @@ app.post("/api/crear-preferencia", async (req, res) => {
         expiration_date_to: reservaHasta.toISOString(),
 
         back_urls: {
-          success: "https://lentes-mocha.vercel.app",
-          failure: "https://lentes-mocha.vercel.app",
-          pending: "https://lentes-mocha.vercel.app"
+          success: "https://espacioarte.vercel.app",
+          failure: "https://espacioarte.vercel.app",
+          pending: "https://espacioarte.vercel.app"
         },
 
         auto_return: "approved"
