@@ -1,3 +1,4 @@
+
 import { MongoClient } from "mongodb";
 
 const uri = process.env.MONGO_URI;
@@ -6,18 +7,23 @@ if (!uri) {
   throw new Error("Falta configurar MONGO_URI");
 }
 
-const client = new MongoClient(uri);
+const opciones = {
+  maxPoolSize: 5,
+  minPoolSize: 0,
+  serverSelectionTimeoutMS: 10000,
+  connectTimeoutMS: 10000,
+};
 
-let clientPromise;
+const globalMongo = globalThis;
 
-if (process.env.NODE_ENV === "development") {
-  if (!global._mongoClientPromise) {
-    global._mongoClientPromise = client.connect();
-  }
+let clientPromise = globalMongo._mongoClientPromise;
 
-  clientPromise = global._mongoClientPromise;
-} else {
+if (!clientPromise) {
+  const client = new MongoClient(uri, opciones);
+
   clientPromise = client.connect();
+
+  globalMongo._mongoClientPromise = clientPromise;
 }
 
 export default clientPromise;
