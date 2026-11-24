@@ -182,13 +182,30 @@ app.post("/api/webhook-mercadopago", async (req, res) => {
     }
 
     // Consultar el pago directamente en Mercado Pago
-    const paymentApi = new Payment(client);
+    
+const paymentApi = new Payment(client);
 
-    const pago = await paymentApi.get({
-      id: dataId
+let pago;
+
+try {
+  pago = await paymentApi.get({
+    id: dataId
+  });
+} catch (error) {
+  if (error.status === 404) {
+    console.warn("Mercado Pago notificó un pago inexistente:", dataId);
+
+    return res.status(200).json({
+      ok: true,
+      mensaje: "Pago inexistente. Notificación ignorada."
     });
+  }
 
-    console.log("Estado del pago:", pago.status);
+  throw error;
+}
+
+console.log("Estado del pago:", pago.status);
+
 
     // Solo continuar si el pago está aprobado
     if (pago.status !== "approved") {
