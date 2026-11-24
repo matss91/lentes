@@ -9,6 +9,7 @@ import {
   Preference,
   WebhookSignatureValidator,
   InvalidWebhookSignatureError,
+   Payment
 } from "mercadopago";
 import { get } from "@vercel/blob";
 import clientPromise from "./mongodb.js";
@@ -125,6 +126,153 @@ app.get("/api/webhook-mercadopago", (req, res) => {
 
 // Recepción y validación de notificaciones
 
+
+// Recepción y procesamiento de notificaciones de Mercado Pago
+app.post("/api/webhook-mercadopago", async (req, res) => {
+  try {
+    const secret = process.env.MP_WEBHOOK_SECRET;
+
+    if (!secret) {
+      console.error("Falta configurar MP_WEBHOOK_SECRET");
+      return res.status(500).json({
+        ok: false,
+        mensaje: "Falta configurar la firma secreta"
+      });
+    }
+
+    // Obtener ID del pago
+    const dataId = req.query["data.id"];
+
+    if (!dataId || typeof dataId !== "string") {
+      return res.status(400).json({
+        ok: false,
+        mensaje: "Falta el ID del pago"
+      });
+    }
+
+    // Validar firma de Mercado Pago
+    try {
+      WebhookSignatureValidator.validate({
+        xSignature: req.headers["x-signature"],
+        xRequestId: req.headers["x-request-id"],
+        dataId,
+        secret
+      });
+    } catch (error) {
+      if (error instanceof InvalidWebhookSignatureError) {
+        console.error("Firma de webhook inválida");
+
+        return res.status(401).json({
+          ok: false,
+          mensaje: "Firma inválida"
+        });
+      }
+
+      throw error;
+    }
+
+    // Ignorar notificaciones que no sean de pagos
+    const tipo = req.body?.type || req.query.type || req.query.topic;
+
+    if (tipo && tipo !== "payment") {
+      return res.status(200).json({
+        ok: true,
+        mensaje: "Notificación ignorada"
+      });
+    }
+
+    // Consultar el pago directamente en Mercado Pago
+    const paymentApi = new Payment(client);
+
+    const pago = await paymentApi.get({
+      id: dataId
+    });
+
+    console.log("Estado del pago:", pago.status);
+
+    // Solo continuar si el pago está aprobado
+    if (pago.status !== "approved") {
+      return res.status(200).json({
+        ok: true,
+        mensaje: "El pago todavía no está aprobado",
+        estado: pago.status
+      });
+    }
+
+    // Recuperar el identificador de reserva
+    const reservaId = pago.external_reference;
+
+    if (!reservaId) {
+      console.error("El pago no tiene external_reference");
+
+      return res.status(200).json({
+        ok: false,
+        mensaje: "El pago no tiene identificador de reserva"
+      });
+    }
+
+    // Conectar con MongoDB
+    const clientMongo = await clientPromise;
+    const db = clientMongo.db();
+    const obras = db.collection("obras");
+
+    // Cambiar únicamente las obras de esta reserva
+    const resultado = await obras.updateMany(
+      {
+        reservaId,
+        estado: "reservado"
+      },
+      {
+        $set: {
+          estado: "vendido",
+          fechaVenta: new Date(),
+          pagoId: String(pago.id)
+        },
+        $unset: {
+          reservaHasta: ""
+        }
+      }
+    );
+
+    console.log("Obras actualizadas:", resultado.modifiedCount);
+
+    // Evitar problemas con notificaciones repetidas
+    if (resultado.modifiedCount === 0) {
+      const yaVendidas = await obras.countDocuments({
+        reservaId,
+        estado: "vendido"
+      });
+
+      if (yaVendidas > 0) {
+        return res.status(200).json({
+          ok: true,
+          mensaje: "La reserva ya estaba procesada"
+        });
+      }
+
+      console.error("No se encontraron obras reservadas:", reservaId);
+
+      return res.status(500).json({
+        ok: false,
+        mensaje: "No se encontraron obras para actualizar"
+      });
+    }
+
+    return res.status(200).json({
+      ok: true,
+      mensaje: "Pago aprobado. Obras marcadas como vendidas",
+      obrasActualizadas: resultado.modifiedCount
+    });
+
+  } catch (error) {
+    console.error("ERROR EN WEBHOOK MERCADO PAGO:", error);
+
+    return res.status(500).json({
+      ok: false,
+      mensaje: "Error procesando notificación"
+    });
+  }
+});
 
 
 
