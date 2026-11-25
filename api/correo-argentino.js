@@ -467,7 +467,8 @@ app.post("/api/crear-preferencia", async (req, res) => {
           pending: "https://espacioarte.vercel.app"
         },
 
-        auto_return: "approved"
+        auto_return: "approved",
+        notification_url: "https://espacioarte.vercel.app/api/webhook-mercadopago"
       }
     });
 
